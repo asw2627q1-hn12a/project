@@ -10,5 +10,11 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  # root "posts#index"
+  # Raíz de la aplicación apuntando al listado de submissions
+  root "submissions#index"
+
+  get "/news", to: "submissions#index", as: :news
+
+  resources :submissions
+  resources :users
 end

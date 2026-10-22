@@ -1,10 +1,130 @@
-/*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
- */
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10pt;
+  color: #000000;
+  background-color: #ffffff;
+  margin: 8px;
+}
+
+.hn-container {
+  width: 85%;
+  min-width: 796px;
+  margin: 0 auto;
+  background-color: #f6f6ef;
+}
+
+/* Header */
+.hn-header {
+  background-color: #ff6600;
+  padding: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hn-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hn-logo {
+  border: 1px solid #ffffff;
+  color: #ffffff;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 0px 4px;
+  font-size: 10pt;
+}
+
+.hn-brand {
+  font-weight: bold;
+  color: #000000;
+  text-decoration: none;
+  margin-right: 4px;
+}
+
+.hn-nav, .hn-nav a, .hn-header-right a {
+  color: #000000;
+  text-decoration: none;
+  font-size: 10pt;
+}
+
+.hn-header-right {
+  padding-right: 6px;
+}
+
+/* Main list */
+.hn-main {
+  padding: 10px 0 16px 0;
+}
+
+.hn-itemlist {
+  padding-left: 6px;
+}
+
+.rank {
+  color: #828282;
+  font-size: 10pt;
+  padding-right: 4px;
+}
+
+.votearrow {
+  color: #828282;
+  font-size: 8pt;
+  padding: 0 4px 0 2px;
+  cursor: pointer;
+}
+
+.titleline a {
+  color: #000000;
+  text-decoration: none;
+  font-size: 10pt;
+}
+
+.titleline a:visited {
+  color: #828282;
+}
+
+.comhead, .comhead a {
+  color: #828282;
+  font-size: 8pt;
+  text-decoration: none;
+}
+
+.comhead a:hover {
+  text-decoration: underline;
+}
+
+.subtext {
+  font-size: 7pt;
+  color: #828282;
+  padding-left: 2px;
+}
+
+.subtext a {
+  color: #828282;
+  text-decoration: none;
+}
+
+.subtext a:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.hn-footer {
+  text-align: center;
+  padding-bottom: 16px;
+}
+
+.hn-orange-line {
+  border: 0;
+  height: 2px;
+  background-color: #ff6600;
+  margin-bottom: 10px;
+}
+
+.hn-footer-links {
+  font-size: 8pt;
+  color: #828282;
+}
