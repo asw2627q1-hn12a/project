@@ -1,5 +1,7 @@
 # README
 
+Aplicació desplegada a Render: https://asw2627q1-hn12-project.onrender.com
+
 Projecte Laboratori ASW
 Membrés:
 Vinyet Amorós
