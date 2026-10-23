@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: asw2627q1-hn12-project
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+    disk:
+      name: rails-storage
+      mountPath: /rails/storage
+      sizeGB: 1
