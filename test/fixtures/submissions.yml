@@ -2,14 +2,14 @@
 
 one:
   title: MyString
-  url: MyString
+  url: https://example.com
   points: 1
-  submission_type: MyString
+  submission_type: url
   user: one
 
 two:
   title: MyString
-  url: MyString
+  url: https://example.com
   points: 1
-  submission_type: MyString
+  submission_type: url
   user: two
