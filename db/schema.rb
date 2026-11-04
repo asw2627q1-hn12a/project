@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_22_164841) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_04_114030) do
   create_table "submissions", force: :cascade do |t|
     t.string "title", null: false
     t.string "url"
@@ -19,6 +19,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_22_164841) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "text"
     t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 

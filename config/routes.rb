@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   root "submissions#index"
 
   get "/news", to: "submissions#index", as: :news
+  get "/newest", to: "submissions#newest", as: :newest
+
+  
 
   resources :submissions
   resources :users
