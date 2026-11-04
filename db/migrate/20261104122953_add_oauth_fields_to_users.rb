@@ -12,7 +12,7 @@ class AddOauthFieldsToUsers < ActiveRecord::Migration[8.0]
     add_column :users, :banner, :string, default: "default-banner.png"
     # Banner provisional per a la US #45.
 
-    add_index :users, [:provider, :uid], unique: true
+    add_index :users, [ :provider, :uid ], unique: true
     # Impedeix duplicar el mateix compte extern.
   end
 end
