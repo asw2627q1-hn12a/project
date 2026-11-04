@@ -17,4 +17,11 @@ Rails.application.routes.draw do
 
   resources :submissions
   resources :users
+
+  # OmniAuth routes
+  get "/auth/:provider/callback", to: "sessions#create"
+  # Rep el callback després que OmniAuth processi el codi.
+
+  get "/auth/failure", to: "sessions#failure"
+  # Gestiona cancel·lacions o errors del proveïdor.
 end
