@@ -27,6 +27,9 @@ class User < ApplicationRecord
 
     user
     # Retorna la instància que usarà SessionsController.
+  rescue ActiveRecord::RecordNotUnique
+    find_by!(provider: auth.provider, uid: auth.uid)
+    # Recupera l'usuari creat per una petició OAuth concurrent.
   end
 
   def self.unique_username(base_username)

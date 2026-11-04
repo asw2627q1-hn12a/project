@@ -56,4 +56,30 @@ class UserTest < ActiveSupport::TestCase
 
     assert_equal "collision_user_2", user.username
   end
+
+  test "recovers when a concurrent OAuth create wins the unique index" do
+    existing_user = User.create!(
+      provider: "github",
+      uid: "github-concurrent",
+      username: "concurrent_user",
+      email: "existing@example.com"
+    )
+    auth = OmniAuth::AuthHash.new(
+      provider: "github",
+      uid: "github-concurrent",
+      info: { nickname: "concurrent_user", email: "new@example.com" }
+    )
+    pending_user = User.new
+
+    original_find_or_initialize_by = User.method(:find_or_initialize_by)
+    User.define_singleton_method(:find_or_initialize_by) { |_attributes| pending_user }
+
+    pending_user.define_singleton_method(:save!) do
+      raise ActiveRecord::RecordNotUnique
+    end
+
+    assert_equal existing_user, User.from_omniauth(auth)
+  ensure
+    User.define_singleton_method(:find_or_initialize_by, original_find_or_initialize_by)
+  end
 end
