@@ -48,28 +48,42 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
   test "should get edit" do
     sign_in
-    get edit_user_url(@user)
+    get edit_user_url(current_user)
     assert_response :success
   end
 
   test "should update user" do
     sign_in
-    patch user_url(@user), params: { user: { email: @user.email, username: @user.username } }
-    assert_redirected_to user_url(@user)
+    user = current_user
+    patch user_url(user), params: { user: { email: user.email, username: user.username } }
+    assert_redirected_to user_url(user)
   end
 
   test "should destroy user" do
     sign_in
+    user = current_user
     assert_difference("User.count", -1) do
-      delete user_url(@user)
+      delete user_url(user)
     end
 
     assert_redirected_to users_url
+  end
+
+  test "should reject editing another user" do
+    sign_in
+
+    get edit_user_url(@user)
+
+    assert_redirected_to root_url
   end
 
   private
 
   def sign_in
     get "/auth/github/callback"
+  end
+
+  def current_user
+    User.find_by!(uid: "github-users-controller")
   end
 end
