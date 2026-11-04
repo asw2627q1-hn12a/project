@@ -21,26 +21,6 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should get new" do
-    sign_in
-    get new_user_url
-    assert_response :success
-  end
-
-  test "should create user" do
-    sign_in
-    assert_difference("User.count") do
-      post users_url, params: {
-        user: {
-          email: "new@example.com",
-          username: "new_user"
-        }
-      }
-    end
-
-    assert_redirected_to user_url(User.last)
-  end
-
   test "should show user" do
     get user_url(@user)
     assert_response :success
@@ -67,6 +47,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to users_url
+    assert_nil session[:user_id]
   end
 
   test "should reject editing another user" do

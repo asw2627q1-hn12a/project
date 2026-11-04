@@ -23,18 +23,6 @@ class UsersTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Users"
   end
 
-  test "should create user" do
-    visit users_url
-    click_on "New user"
-
-    fill_in "Email", with: "new-system@example.com"
-    fill_in "Username", with: "new_system_user"
-    click_on "Create User"
-
-    assert_text "User was successfully created"
-    click_on "Back"
-  end
-
   test "should update User" do
     visit user_url(@user)
     click_on "Edit this user", match: :first

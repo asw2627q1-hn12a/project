@@ -16,7 +16,7 @@ Rails.application.routes.draw do
   get "/news", to: "submissions#index", as: :news
 
   resources :submissions
-  resources :users
+  resources :users, except: %i[ new create ]
 
   # OmniAuth routes
   get "/auth/:provider/callback", to: "sessions#create"
