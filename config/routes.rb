@@ -24,4 +24,7 @@ Rails.application.routes.draw do
 
   get "/auth/failure", to: "sessions#failure"
   # Gestiona cancel·lacions o errors del proveïdor.
+
+  post "/logout", to: "sessions#destroy", as: :logout
+  # Logout amb POST perquè canvia l'estat de la sessió i queda protegit per CSRF.
 end
