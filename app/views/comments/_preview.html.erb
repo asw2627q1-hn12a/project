@@ -1,0 +1,14 @@
+<div class="comment-header">
+  <span class="comment-vote" aria-hidden="true">&#9650;</span>
+  <p class="comment-meta">
+    <%= link_to comment.user.username, user_path(comment.user), class: "comment-author" %>
+    <%= link_to I18n.with_locale(:ca) { time_ago_in_words(comment.created_at) },
+                submission_path(comment.submission, anchor: dom_id(comment)), class: "comment-age" %>
+    <% if comment.parent %>
+      | Resposta a <%= link_to comment.parent.user.username,
+                               submission_comment_path(comment.submission, comment.parent) %>
+    <% end %>
+    | <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+  </p>
+</div>
+<div class="comment-body"><%= simple_format(comment.body) %></div>

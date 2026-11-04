@@ -1,0 +1,12 @@
+<article id="<%= dom_id(comment) %>" class="comment">
+  <%= render "comments/preview", comment: comment %>
+
+  <%= link_to "Respon", new_submission_comment_path(submission, parent_id: comment.id), class: "comment-reply" %>
+
+  <% if comment.replies.any? %>
+    <div class="comment-replies">
+      <%= render partial: "comments/comment", collection: comment.replies.includes(:user).order(:created_at),
+                 as: :comment, locals: { submission: submission } %>
+    </div>
+  <% end %>
+</article>

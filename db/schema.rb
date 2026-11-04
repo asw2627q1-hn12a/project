@@ -10,7 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_22_164841) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_04_120000) do
+  create_table "comments", force: :cascade do |t|
+    t.text "body", null: false
+    t.integer "submission_id", null: false
+    t.integer "user_id", null: false
+    t.integer "parent_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["parent_id"], name: "index_comments_on_parent_id"
+    t.index ["submission_id"], name: "index_comments_on_submission_id"
+    t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
   create_table "submissions", force: :cascade do |t|
     t.string "title", null: false
     t.string "url"
@@ -29,5 +41,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_22_164841) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "comments", "comments", column: "parent_id"
+  add_foreign_key "comments", "submissions"
+  add_foreign_key "comments", "users"
   add_foreign_key "submissions", "users"
 end

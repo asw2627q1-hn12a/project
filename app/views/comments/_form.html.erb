@@ -1,0 +1,38 @@
+<%= form_with(model: [ submission, comment ], class: "comment-form") do |form| %>
+  <%= form.hidden_field :parent_id if comment.parent_id.present? %>
+
+  <% if comment.errors.any? %>
+    <div class="comment-errors">
+      <p>No s'ha pogut publicar el comentari:</p>
+      <ul>
+        <% comment.errors.each do |error| %>
+          <li>
+            <%= case error.attribute
+                when :body then "El comentari #{error.message}"
+                when :submission then "La publicació no és vàlida."
+                when :user then "Cal seleccionar un autor existent."
+                else error.message
+                end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="comment-form-field">
+    <%= form.label :user_id, "Autor" %>
+    <% if users.any? %>
+      <%= form.collection_select :user_id, users, :id, :username, { prompt: "Tria un usuari" }, required: true %>
+    <% else %>
+      <p>Per comentar, primer cal <%= link_to "crear un usuari", new_user_path %>.</p>
+    <% end %>
+  </div>
+
+  <div class="comment-form-field">
+    <%= form.label :body, "Comentari" %>
+    <%= form.text_area :body, rows: 4, required: true %>
+  </div>
+
+  <%= form.submit comment.parent_id.present? ? "Publica la resposta" : "Publica el comentari",
+                   disabled: users.empty? %>
+<% end %>

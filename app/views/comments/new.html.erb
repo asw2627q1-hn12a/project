@@ -1,0 +1,11 @@
+<section class="comments-section">
+  <h2>Respon al comentari</h2>
+
+  <div class="reply-context">
+    <%= render "comments/preview", comment: @parent_comment %>
+  </div>
+
+  <%= render "comments/form", submission: @submission, comment: @comment, users: @users %>
+
+  <%= link_to "Torna a la publicació", submission_path(@submission) %>
+</section>

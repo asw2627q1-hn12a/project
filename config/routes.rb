@@ -14,7 +14,10 @@ Rails.application.routes.draw do
   root "submissions#index"
 
   get "/news", to: "submissions#index", as: :news
+  get "/newcomments", to: "comments#index", as: :comments
 
-  resources :submissions
+  resources :submissions do
+    resources :comments, only: %i[ show new create ]
+  end
   resources :users
 end

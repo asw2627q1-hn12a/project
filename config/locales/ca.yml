@@ -1,0 +1,48 @@
+ca:
+  datetime:
+    distance_in_words:
+      about_x_hours:
+        one: "aproximadament una hora"
+        other: "aproximadament %{count} hores"
+      about_x_months:
+        one: "aproximadament un mes"
+        other: "aproximadament %{count} mesos"
+      about_x_years:
+        one: "aproximadament un any"
+        other: "aproximadament %{count} anys"
+      almost_x_years:
+        one: "gairebé un any"
+        other: "gairebé %{count} anys"
+      half_a_minute: "mig minut"
+      less_than_x_minutes:
+        one: "menys d'un minut"
+        other: "menys de %{count} minuts"
+      less_than_x_seconds:
+        one: "menys d'un segon"
+        other: "menys de %{count} segons"
+      over_x_years:
+        one: "més d'un any"
+        other: "més de %{count} anys"
+      x_days:
+        one: "1 dia"
+        other: "%{count} dies"
+      x_hours:
+        one: "1 hora"
+        other: "%{count} hores"
+      x_minutes:
+        one: "1 minut"
+        other: "%{count} minuts"
+      x_months:
+        one: "1 mes"
+        other: "%{count} mesos"
+      x_seconds:
+        one: "1 segon"
+        other: "%{count} segons"
+      x_years:
+        one: "1 any"
+        other: "%{count} anys"
+  support:
+    array:
+      words_connector: ", "
+      two_words_connector: " i "
+      last_word_connector: " i "

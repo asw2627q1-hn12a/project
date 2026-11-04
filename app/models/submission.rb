@@ -2,6 +2,7 @@ require 'uri'
 
 class Submission < ApplicationRecord
   belongs_to :user
+  has_many :comments, dependent: :destroy
 
   validates :title, presence: true
   validates :submission_type, inclusion: { in: %w[url ask] }
