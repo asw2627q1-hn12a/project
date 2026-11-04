@@ -43,5 +43,15 @@
         </div>
       </footer>
     </div>
+
+    <% if current_user %>
+      <span><%= current_user.username %></span>
+      <%= button_to "logout", logout_path, method: :post %>
+    <% else %>
+      <%= button_to "Sign in with GitHub",
+                "/auth/github",
+                method: :post,
+                data: { turbo: false } %>
+    <% end %>
   </body>
 </html>
