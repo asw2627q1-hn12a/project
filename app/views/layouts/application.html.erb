@@ -37,6 +37,10 @@
 
       <!-- Contenido principal -->
       <main class="hn-main">
+        <% flash.each do |type, message| %>
+          <div class="hn-flash hn-flash-<%= type %>"><%= message %></div>
+        <% end %>
+
         <%= yield %>
       </main>
 

@@ -3,6 +3,17 @@ require "test_helper"
 class UsersControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
+    OmniAuth.config.test_mode = true
+    OmniAuth.config.mock_auth[:github] = OmniAuth::AuthHash.new(
+      provider: "github",
+      uid: "github-users-controller",
+      info: { nickname: "users_controller_user", email: "users@example.com" }
+    )
+  end
+
+  teardown do
+    OmniAuth.config.test_mode = false
+    OmniAuth.config.mock_auth.clear
   end
 
   test "should get index" do
@@ -11,11 +22,13 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get new" do
+    sign_in
     get new_user_url
     assert_response :success
   end
 
   test "should create user" do
+    sign_in
     assert_difference("User.count") do
       post users_url, params: {
         user: {
@@ -34,20 +47,29 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get edit" do
+    sign_in
     get edit_user_url(@user)
     assert_response :success
   end
 
   test "should update user" do
+    sign_in
     patch user_url(@user), params: { user: { email: @user.email, username: @user.username } }
     assert_redirected_to user_url(@user)
   end
 
   test "should destroy user" do
+    sign_in
     assert_difference("User.count", -1) do
       delete user_url(@user)
     end
 
     assert_redirected_to users_url
+  end
+
+  private
+
+  def sign_in
+    get "/auth/github/callback"
   end
 end

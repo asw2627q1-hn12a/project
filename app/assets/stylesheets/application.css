@@ -83,6 +83,12 @@ body {
   padding: 10px 0 16px 0;
 }
 
+.hn-flash {
+  padding: 4px 6px 8px;
+  color: #828282;
+  font-size: 9pt;
+}
+
 .hn-itemlist {
   padding-left: 6px;
 }

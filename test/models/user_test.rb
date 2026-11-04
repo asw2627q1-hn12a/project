@@ -43,4 +43,17 @@ class UserTest < ActiveSupport::TestCase
       assert_equal first_user.id, second_user.id
     end
   end
+
+  test "adds a suffix when the OAuth username already exists" do
+    User.create!(username: "collision_user", email: "existing@example.com")
+    auth = OmniAuth::AuthHash.new(
+      provider: "github",
+      uid: "github-collision",
+      info: { nickname: "collision_user", email: "new@example.com" }
+    )
+
+    user = User.from_omniauth(auth)
+
+    assert_equal "collision_user_2", user.username
+  end
 end
