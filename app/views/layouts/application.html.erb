@@ -30,7 +30,7 @@
             <span class="hn-user"><%= current_user.username %></span>
             <%= button_to "logout", logout_path, method: :post, class: "hn-auth-button" %>
           <% else %>
-            <%= button_to "login", "/auth/github", method: :post, data: { turbo: false }, class: "hn-auth-button" %>
+            <%= button_to "login", "/auth/github", method: :post, form: { data: { turbo: false } }, class: "hn-auth-button" %>
           <% end %>
         </div>
       </header>

@@ -82,4 +82,26 @@ class UserTest < ActiveSupport::TestCase
   ensure
     User.define_singleton_method(:find_or_initialize_by, original_find_or_initialize_by)
   end
+
+  test "retries after a username unique violation" do
+    User.create!(username: "retry_user", email: "existing@example.com")
+    auth = OmniAuth::AuthHash.new(
+      provider: "github",
+      uid: "github-retry",
+      info: { nickname: "retry_user", email: "retry@example.com" }
+    )
+    pending_users = [ User.new, User.new(provider: auth.provider, uid: auth.uid) ]
+    original_find_or_initialize_by = User.method(:find_or_initialize_by)
+    User.define_singleton_method(:find_or_initialize_by) { |_attributes| pending_users.shift }
+    pending_users.first.define_singleton_method(:save!) do
+      raise ActiveRecord::RecordNotUnique
+    end
+
+    user = User.from_omniauth(auth)
+
+    assert_equal "retry_user_2", user.username
+    assert_equal "github-retry", user.uid
+  ensure
+    User.define_singleton_method(:find_or_initialize_by, original_find_or_initialize_by)
+  end
 end
