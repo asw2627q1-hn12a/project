@@ -26,14 +26,10 @@ class SubmissionsController < ApplicationController
   def edit
   end
 
-# POST /submissions
+  # POST /submissions
   def create
     @submission = Submission.new(submission_params)
     @submission.user = current_user
-
-    # Valores por defecto si no vienen del formulario (ajustar según vuestro sistema de login)
-    @submission.points ||= 1
-    @submission.user ||= User.first
 
     # 1. Comprobar si la URL informada ya existe en la BD
     if @submission.url.present?
