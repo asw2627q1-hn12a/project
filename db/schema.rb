@@ -19,6 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_05_120000) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "text"
     t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 
