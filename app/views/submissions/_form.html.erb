@@ -25,10 +25,6 @@
     <%= form.text_area :text, rows: 4 %>
   </div>
 
-  <div>
-    <%= form.label :user_id, "User" %><br>
-    <%= form.collection_select :user_id, User.all, :id, :username %>
-  </div>
 
   <div>
     <%= form.submit "submit" %>

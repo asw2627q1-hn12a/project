@@ -1,5 +1,6 @@
 class SubmissionsController < ApplicationController
   before_action :set_submission, only: %i[ show edit update destroy ]
+  before_action :require_login, only: %i[new create]
 
 # GET /submissions or /news or /
   def index
@@ -28,6 +29,7 @@ class SubmissionsController < ApplicationController
 # POST /submissions
   def create
     @submission = Submission.new(submission_params)
+    @submission.user = current_user
 
     # Valores por defecto si no vienen del formulario (ajustar según vuestro sistema de login)
     @submission.points ||= 1
@@ -86,6 +88,6 @@ class SubmissionsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def submission_params
-      params.expect(submission: [ :title, :url, :text, :points, :submission_type, :user_id ])
+      params.expect(submission: [ :title, :url, :text, :submission_type ])
     end
 end
