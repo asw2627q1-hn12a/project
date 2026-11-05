@@ -1,5 +1,6 @@
 class SubmissionsController < ApplicationController
   before_action :set_submission, only: %i[ show edit update destroy ]
+  before_action :require_login, only: %i[new create]
 
   # GET /submissions or /news or /
   def index
@@ -15,17 +16,35 @@ class SubmissionsController < ApplicationController
     @submission = Submission.new
   end
 
+  # GET /newest
+  def newest
+    @submissions = Submission.includes(:user).order(created_at: :desc)
+    render :index
+  end
+
   # GET /submissions/1/edit
   def edit
   end
 
-  # POST /submissions or /submissions.json
+  # POST /submissions
   def create
     @submission = Submission.new(submission_params)
+    @submission.user = current_user
 
+    # 1. Comprobar si la URL informada ya existe en la BD
+    if @submission.url.present?
+      existing_submission = Submission.find_by("LOWER(url) = ?", @submission.url.strip.downcase)
+      if existing_submission
+        redirect_to submission_path(existing_submission), notice: "Esta URL ya había sido publicada."
+        return
+      end
+    end
+
+    # 2. Si no existe duplicado, validar formato/título y guardar
     respond_to do |format|
       if @submission.save
-        format.html { redirect_to @submission, notice: "Submission was successfully created." }
+        # Redirigir a Newest con la nueva submission al principio
+        format.html { redirect_to newest_path, notice: "Submission was successfully created." }
         format.json { render :show, status: :created, location: @submission }
       else
         format.html { render :new, status: :unprocessable_content }
@@ -65,6 +84,6 @@ class SubmissionsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def submission_params
-      params.expect(submission: [ :title, :url, :points, :submission_type, :user_id ])
+      params.expect(submission: [ :title, :url, :text, :submission_type ])
     end
 end
