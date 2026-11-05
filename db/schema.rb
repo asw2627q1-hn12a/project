@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_04_122953) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_05_120000) do
   create_table "submissions", force: :cascade do |t|
     t.string "title", null: false
     t.string "url"
@@ -33,6 +33,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_04_122953) do
     t.string "avatar", default: "default-avatar.png"
     t.string "banner", default: "default-banner.png"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   add_foreign_key "submissions", "users"
