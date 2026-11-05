@@ -16,8 +16,6 @@ Rails.application.routes.draw do
   get "/news", to: "submissions#index", as: :news
   get "/newest", to: "submissions#newest", as: :newest
 
-  
-
   resources :submissions
   resources :users, except: %i[ new create ]
 
