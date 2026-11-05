@@ -2,7 +2,7 @@ class SubmissionsController < ApplicationController
   before_action :set_submission, only: %i[ show edit update destroy ]
   before_action :require_login, only: %i[new create]
 
-# GET /submissions or /news or /
+  # GET /submissions or /news or /
   def index
     @submissions = Submission.where(submission_type: "url").includes(:user).order(points: :desc, created_at: :desc)
   end

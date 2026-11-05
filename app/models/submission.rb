@@ -21,6 +21,7 @@ class Submission < ApplicationRecord
             uniqueness: { case_sensitive: false },
             allow_blank: true
 
+  validates :url, presence: true, if: -> { submission_type == "url" }
   validates :points, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   def domain

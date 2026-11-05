@@ -7,12 +7,11 @@ class SubmissionsTest < ApplicationSystemTestCase
 
   test "visiting the index" do
     visit submissions_url
-    assert_selector "h1", text: "Submissions"
+    assert_selector "table.hn-itemlist"
   end
 
   test "should create submission" do
-    visit submissions_url
-    click_on "New submission"
+    visit new_submission_url
 
     fill_in "Points", with: @submission.points
     fill_in "Submission type", with: @submission.submission_type
