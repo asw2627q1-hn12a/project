@@ -4,7 +4,6 @@ Projecte de laboratori de l'assignatura **Aplicacions i Serveis Web (ASW)** de l
 L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news.ycombinator.com/) amb Ruby on Rails.
 
 🔗 **Aplicació desplegada:** https://asw2627q1-hn12-project.onrender.com
-📋 **Taiga:** _(afegir l'enllaç al projecte públic de Taiga)_
 
 ## Equip
 
