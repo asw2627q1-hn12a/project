@@ -1,0 +1,10 @@
+<section class="comments-section">
+  <h2>Fil de comentaris</h2>
+  <p class="comment-submission">
+    Publicació: <%= link_to @submission.title, submission_path(@submission, anchor: "comments") %>
+  </p>
+
+  <div class="comments-list">
+    <%= render "comments/comment", comment: @comment, submission: @submission %>
+  </div>
+</section>

@@ -1,0 +1,25 @@
+<article id="<%= dom_id(comment) %>" class="comment">
+  <%= render "comments/preview", comment: comment %>
+
+  <div class="comment-actions">
+    <% if current_user %>
+      <%= link_to "Respon", new_submission_comment_path(submission, parent_id: comment.id), class: "comment-reply" %>
+      <% if current_user == comment.user && !comment.deleted? %>
+        <%= link_to "Edita", edit_submission_comment_path(submission, comment), class: "comment-action" %>
+        <%= button_to "Elimina", submission_comment_path(submission, comment), method: :delete,
+                      class: "comment-action comment-delete",
+                      form: { data: { turbo_confirm: "Vols eliminar aquest comentari?" } } %>
+      <% end %>
+    <% else %>
+      <%= button_to "Inicia sessió per respondre", "/auth/github", method: :post,
+                    form: { data: { turbo: false }, class: "comment-login-form" }, class: "comment-reply" %>
+    <% end %>
+  </div>
+
+  <% if comment.replies.any? %>
+    <div class="comment-replies">
+      <%= render partial: "comments/comment", collection: comment.replies.includes(:user).order(:created_at),
+                 as: :comment, locals: { submission: submission } %>
+    </div>
+  <% end %>
+</article>

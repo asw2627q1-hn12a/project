@@ -2,6 +2,7 @@ class User < ApplicationRecord
   MAX_OAUTH_CREATE_ATTEMPTS = 3
 
   has_many :submissions, dependent: :destroy
+  has_many :comments, dependent: :destroy
 
   validates :username, presence: true, uniqueness: true
 

@@ -1,0 +1,26 @@
+<section class="comments-section">
+  <h2>Edita el comentari</h2>
+  <p class="comment-current-user">Comentes com a <strong><%= current_user.username %></strong></p>
+
+  <%= form_with(model: [ @submission, @comment ], class: "comment-form") do |form| %>
+    <% if @comment.errors.any? %>
+      <div class="comment-errors">
+        <p>No s'han pogut desar els canvis:</p>
+        <ul>
+          <% @comment.errors.each do |error| %>
+            <li>El comentari <%= error.message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="comment-form-field">
+      <%= form.label :body, "Comentari" %>
+      <%= form.text_area :body, rows: 4, required: true %>
+    </div>
+
+    <%= form.submit "Desa els canvis" %>
+  <% end %>
+
+  <%= link_to "Torna al fil", submission_comment_path(@submission, @comment) %>
+</section>

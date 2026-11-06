@@ -16,7 +16,7 @@ class ApplicationController < ActionController::Base
     return if current_user
     # Continua si hi ha una sessió vàlida.
 
-    redirect_to root_path, alert: "You must be logged in"
+    redirect_to root_path, alert: "Cal iniciar sessió per continuar."
     # Bloqueja usuaris anònims.
   end
 end
