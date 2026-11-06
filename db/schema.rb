@@ -10,6 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema[8.0].define(version: 2026_11_04_120000) do
   create_table "comments", force: :cascade do |t|
     t.text "body", null: false
@@ -23,6 +24,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_04_120000) do
     t.index ["user_id"], name: "index_comments_on_user_id"
   end
 
+=======
+ActiveRecord::Schema[8.1].define(version: 2026_11_05_120000) do
+>>>>>>> 7686a8a9d00acd48b505264250ae7dee7a7d6fcb
   create_table "submissions", force: :cascade do |t|
     t.string "title", null: false
     t.string "url"
@@ -31,6 +35,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_04_120000) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "text"
     t.index ["user_id"], name: "index_submissions_on_user_id"
   end
 
@@ -39,6 +44,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_04_120000) do
     t.string "email"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "provider"
+    t.string "uid"
+    t.string "avatar", default: "default-avatar.png"
+    t.string "banner", default: "default-banner.png"
+    t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
   add_foreign_key "comments", "comments", column: "parent_id"

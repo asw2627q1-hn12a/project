@@ -20,4 +20,18 @@ Rails.application.routes.draw do
     resources :comments, only: %i[ show new create ]
   end
   resources :users
+  get "/newest", to: "submissions#newest", as: :newest
+
+  resources :submissions
+  resources :users, except: %i[ new create ]
+
+  # OmniAuth routes
+  get "/auth/:provider/callback", to: "sessions#create"
+  # Rep el callback després que OmniAuth processi el codi.
+
+  get "/auth/failure", to: "sessions#failure"
+  # Gestiona cancel·lacions o errors del proveïdor.
+
+  post "/logout", to: "sessions#destroy", as: :logout
+  # Logout amb POST perquè canvia l'estat de la sessió i queda protegit per CSRF.
 end

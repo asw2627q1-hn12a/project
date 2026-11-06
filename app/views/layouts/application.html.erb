@@ -26,12 +26,21 @@
           </nav>
         </div>
         <div class="hn-header-right">
-          <a href="<%= users_path %>">login</a>
+          <% if current_user %>
+            <span class="hn-user"><%= current_user.username %></span>
+            <%= button_to "logout", logout_path, method: :post, class: "hn-auth-button" %>
+          <% else %>
+            <%= button_to "login", "/auth/github", method: :post, form: { data: { turbo: false } }, class: "hn-auth-button" %>
+          <% end %>
         </div>
       </header>
 
       <!-- Contenido principal -->
       <main class="hn-main">
+        <% flash.each do |type, message| %>
+          <div class="hn-flash hn-flash-<%= type %>"><%= message %></div>
+        <% end %>
+
         <%= yield %>
       </main>
 
