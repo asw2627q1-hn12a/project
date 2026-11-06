@@ -9,6 +9,8 @@ class SubmissionsController < ApplicationController
 
   # GET /submissions/1 or /submissions/1.json
   def show
+    @comments = @submission.comments.where(parent_id: nil).includes(:user).order(:created_at)
+    @comment = @submission.comments.new
   end
 
   # GET /submissions/new

@@ -8,3 +8,25 @@
 
   <%= button_to "Destroy this submission", @submission, method: :delete %>
 </div>
+
+<section id="comments" class="comments-section">
+  <h2>Comentaris</h2>
+
+  <% if current_user %>
+    <div class="new-comment">
+      <h3>Deixa un comentari</h3>
+      <%= render "comments/form", submission: @submission, comment: @comment %>
+    </div>
+  <% else %>
+    <div class="comment-login-prompt">
+      <p>Per comentar, cal iniciar sessió.</p>
+      <%= button_to "Inicia sessió amb GitHub", "/auth/github", method: :post,
+                    form: { data: { turbo: false } }, class: "hn-auth-button" %>
+    </div>
+  <% end %>
+
+  <div class="comments-list">
+    <%= render partial: "comments/comment", collection: @comments, as: :comment,
+               locals: { submission: @submission } %>
+  </div>
+</section>

@@ -15,8 +15,11 @@ Rails.application.routes.draw do
 
   get "/news", to: "submissions#index", as: :news
   get "/newest", to: "submissions#newest", as: :newest
+  get "/newcomments", to: "comments#index", as: :comments
 
-  resources :submissions
+  resources :submissions do
+    resources :comments, only: %i[ show new create edit update destroy ]
+  end
   resources :users, except: %i[ new create ]
 
   # OmniAuth routes

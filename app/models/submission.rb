@@ -2,6 +2,7 @@ require "uri"
 
 class Submission < ApplicationRecord
   belongs_to :user
+  has_many :comments, dependent: :destroy
 
   # Antes de validar, limpiamos espacios y asignamos el tipo automáticamente
   before_validation :normalize_fields

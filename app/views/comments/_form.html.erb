@@ -1,0 +1,29 @@
+<%= form_with(model: [ submission, comment ], class: "comment-form") do |form| %>
+  <%= form.hidden_field :parent_id if comment.parent_id.present? %>
+
+  <% if comment.errors.any? %>
+    <div class="comment-errors">
+      <p>No s'ha pogut publicar el comentari:</p>
+      <ul>
+        <% comment.errors.each do |error| %>
+          <li>
+            <%= case error.attribute
+                when :body then "El comentari #{error.message}"
+                when :parent then "La resposta #{error.message}"
+                else error.message
+                end %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <p class="comment-current-user">Comentes com a <strong><%= current_user.username %></strong></p>
+
+  <div class="comment-form-field">
+    <%= form.label :body, "Comentari" %>
+    <%= form.text_area :body, rows: 4, required: true %>
+  </div>
+
+  <%= form.submit comment.parent_id.present? ? "Publica la resposta" : "Publica el comentari" %>
+<% end %>
