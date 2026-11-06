@@ -10,23 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-<<<<<<< HEAD
-ActiveRecord::Schema[8.0].define(version: 2026_11_04_120000) do
-  create_table "comments", force: :cascade do |t|
-    t.text "body", null: false
-    t.integer "submission_id", null: false
-    t.integer "user_id", null: false
-    t.integer "parent_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["parent_id"], name: "index_comments_on_parent_id"
-    t.index ["submission_id"], name: "index_comments_on_submission_id"
-    t.index ["user_id"], name: "index_comments_on_user_id"
-  end
-
-=======
 ActiveRecord::Schema[8.1].define(version: 2026_11_05_120000) do
->>>>>>> 7686a8a9d00acd48b505264250ae7dee7a7d6fcb
   create_table "submissions", force: :cascade do |t|
     t.string "title", null: false
     t.string "url"
