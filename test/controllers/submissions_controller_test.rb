@@ -21,6 +21,36 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "main page lists URL and Ask submissions sorted by relevance" do
+    url_submission = Submission.create!(title: "Popular link", url: "https://main.example/popular", user: users(:one), points: 50)
+    ask_submission = Submission.create!(title: "Ask HN: main page", user: users(:two), points: 30)
+    newer_tie = Submission.create!(title: "Newer tie", url: "https://main.example/newer", user: users(:one), points: 30, created_at: 1.hour.ago)
+    ask_submission.update_column(:created_at, 2.hours.ago)
+
+    get root_url
+
+    assert_response :success
+    assert_select "tr.athing" do |rows|
+      assert_equal [ url_submission, newer_tie, ask_submission ].map { |s| "submission_#{s.id}" },
+                   rows.first(3).map { |row| row["id"] }
+    end
+    assert_select ".titleline a[href=?]", submission_path(ask_submission), text: "Ask HN: main page"
+  end
+
+  test "main page shows the number of comments linking to the submission" do
+    commented = Submission.create!(title: "Commented", url: "https://main.example/commented", user: users(:one), points: 20)
+    single = Submission.create!(title: "Single comment", url: "https://main.example/single", user: users(:one), points: 15)
+    silent = Submission.create!(title: "No comments", url: "https://main.example/silent", user: users(:one), points: 10)
+    2.times { |i| Comment.create!(submission: commented, user: users(:two), body: "Comentari #{i}") }
+    Comment.create!(submission: single, user: users(:two), body: "Únic comentari")
+
+    get root_url
+
+    assert_select "a[href=?]", submission_path(commented, anchor: "comments"), text: "2 comments"
+    assert_select "a[href=?]", submission_path(single, anchor: "comments"), text: "1 comment"
+    assert_select "a[href=?]", submission_path(silent, anchor: "comments"), text: "discuss"
+  end
+
   test "search is accessible from the header without login" do
     get root_url
     assert_select "header form[action=?][method=get][role=search]", search_path do

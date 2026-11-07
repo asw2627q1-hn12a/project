@@ -54,7 +54,8 @@
           <span class="age">
             <a href="<%= submission_path(submission) %>"><%= time_ago_in_words(submission.created_at) %> ago</a>
           </span>
-          | <a href="<%= submission_path(submission) %>">discuss</a>
+          <% comments_count = submission.comments.size %>
+          | <%= link_to (comments_count.zero? ? "discuss" : pluralize(comments_count, "comment")), submission_path(submission, anchor: "comments") %>
         </td>
       </tr>
 
