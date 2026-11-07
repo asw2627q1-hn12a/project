@@ -1,6 +1,6 @@
 class CommentsController < ApplicationController
   before_action :set_submission, only: %i[ show new create edit update destroy ]
-  before_action :require_login, only: %i[ create edit update destroy ]
+  before_action :require_login, only: %i[ create edit update destroy threads ]
   before_action :set_comment, only: %i[ show edit update destroy ]
   before_action :authorize_comment, only: %i[ edit update destroy ]
 
@@ -73,6 +73,15 @@ class CommentsController < ApplicationController
       end
       format.json { head :no_content }
     end
+  end
+
+  def threads
+    comments = current_user.comments
+                 .where(deleted_at: nil)
+                 .includes(:submission, :user, :parent, replies: :user)
+                 .order(created_at: :desc)
+    # Evita repetir un comentari que ja surt dins del fil d'un altre comentari propi
+    @comments = comments.reject { |c| c.parent&.user_id == current_user.id && !c.parent.deleted? }
   end
 
   private

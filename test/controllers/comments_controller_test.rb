@@ -352,6 +352,47 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Text original", comment.reload.body
   end
 
+  test "redirects anonymous users away from threads" do
+    get threads_url
+
+    assert_redirected_to root_url
+    assert_equal "Cal iniciar sessió per continuar.", flash[:alert]
+  end
+
+  test "shows the logged in user's comments with their replies in threads" do
+    sign_in
+    logged_in_user = User.find_by!(uid: "github-comments-controller")
+    mine = Comment.create!(submission: @submission, user: logged_in_user, body: "El meu comentari")
+    reply = Comment.create!(
+      submission: @submission, user: users(:two), body: "Resposta d'un altre", parent: mine
+    )
+    other = Comment.create!(submission: submissions(:two), user: users(:two), body: "Comentari aliè")
+
+    get threads_url
+
+    assert_response :success
+    assert_select "#comment_#{mine.id}"
+    assert_select "#comment_#{mine.id} #comment_#{reply.id}"
+    assert_select "#comment_#{other.id}", 0
+  end
+
+  test "does not repeat own replies or show deleted own comments in threads" do
+    sign_in
+    logged_in_user = User.find_by!(uid: "github-comments-controller")
+    root = Comment.create!(submission: @submission, user: logged_in_user, body: "Arrel pròpia")
+    own_reply = Comment.create!(
+      submission: @submission, user: logged_in_user, body: "Resposta pròpia", parent: root
+    )
+    deleted = Comment.create!(submission: @submission, user: logged_in_user, body: "Comentari esborrat")
+    deleted.soft_delete!
+
+    get threads_url
+
+    assert_response :success
+    assert_select "#comment_#{own_reply.id}", 1
+    assert_select "#comment_#{deleted.id}", 0
+  end
+
   private
 
   def sign_in
