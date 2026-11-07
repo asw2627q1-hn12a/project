@@ -1,11 +1,13 @@
 <% content_for :title, "Submit" %>
 
-<h1>Submit</h1>
+<div class="submit-page">
+  <h1>Submit</h1>
 
-<%= render "form", submission: @submission %>
+  <%= render "form", submission: @submission %>
 
-<br>
+  <p class="submit-help">Leave the URL blank to submit an Ask post. If there is a URL, text is optional.</p>
 
-<div>
-  <%= link_to "Back to submissions", submissions_path %>
+  <div class="submit-back-link">
+    <%= link_to "Back to submissions", submissions_path %>
+  </div>
 </div>

@@ -25,7 +25,7 @@
             <a href="<%= submit_path %>">submit</a>
           </nav>
         </div>
-        <div class="hn-header-right">
+        <div class="hn-header-right" id="login">
           <% if current_user %>
             <span class="hn-user"><%= current_user.username %></span>
             <%= button_to "logout", logout_path, method: :post, class: "hn-auth-button" %>
@@ -38,7 +38,9 @@
       <!-- Contenido principal -->
       <main class="hn-main">
         <% flash.each do |type, message| %>
-          <div class="hn-flash hn-flash-<%= type %>"><%= message %></div>
+          <% unless type.to_s == "notice" && content_for?(:notice_displayed_in_page) %>
+            <div class="hn-flash hn-flash-<%= type %>"><%= message %></div>
+          <% end %>
         <% end %>
 
         <%= yield %>

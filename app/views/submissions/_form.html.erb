@@ -1,4 +1,4 @@
-<%= form_with(model: submission) do |form| %>
+<%= form_with(model: submission, class: "submission-form") do |form| %>
   <% if submission.errors.any? %>
     <div style="color: red">
       <h2><%= pluralize(submission.errors.count, "error") %> impidieron guardar la submission:</h2>
@@ -10,24 +10,22 @@
     </div>
   <% end %>
 
-  <div>
-    <%= form.label :title, "title" %><br>
+  <div class="submission-form-field">
+    <%= form.label :title, "title" %>
     <%= form.text_field :title, required: true %>
   </div>
 
-  <div>
-    <%= form.label :url, "url" %><br>
+  <div class="submission-form-field">
+    <%= form.label :url, "url" %>
     <%= form.url_field :url, placeholder: "https://example.com" %>
-    <small>Leave the URL blank to submit an Ask post.</small>
   </div>
 
-  <div>
-    <%= form.label :text, "text" %><br>
+  <div class="submission-form-field">
+    <%= form.label :text, "text" %>
     <%= form.text_area :text, rows: 4 %>
   </div>
 
-
-  <div>
+  <div class="submission-form-actions">
     <%= form.submit "submit" %>
   </div>
 <% end %>
