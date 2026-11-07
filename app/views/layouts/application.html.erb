@@ -22,8 +22,12 @@
             <a href="<%= comments_path %>">comentaris</a> |
             <a href="#">ask</a> |
             <a href="#">show</a> |
-            <a href="<%= submit_path %>">submit</a>
+            <a href="<%= submit_path %>">submit</a> |
           </nav>
+          <%= form_with url: search_path, method: :get, html: { class: "hn-header-search", role: "search" } do |form| %>
+            <%= form.search_field :q, value: @query, placeholder: "Search submissions by title", aria: { label: "Search submissions by title" }, required: true %>
+            <%= form.submit "Search" %>
+          <% end %>
         </div>
         <div class="hn-header-right">
           <% if current_user %>
