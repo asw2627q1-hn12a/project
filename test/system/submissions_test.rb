@@ -21,6 +21,21 @@ class SubmissionsTest < ApplicationSystemTestCase
     assert_selector "table.hn-itemlist"
   end
 
+  test "searching from the header and opening a submission" do
+    visit root_url
+    within "header" do
+      fill_in "Search submissions by title", with: @submission.title
+    end
+    click_button "Search"
+
+    within "#submission_#{@submission.id}" do
+      click_link @submission.title
+    end
+
+    assert_current_path submission_path(@submission)
+    assert_text @submission.title
+  end
+
   test "should create submission" do
     sign_in
     visit new_submission_url

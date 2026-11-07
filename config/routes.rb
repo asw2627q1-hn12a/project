@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   get "/news", to: "submissions#index", as: :news
   get "/submit", to: "submissions#new", as: :submit
   get "/newest", to: "submissions#newest", as: :newest
+  get "/search", to: "submissions#search", as: :search
   get "/newcomments", to: "comments#index", as: :comments
 
   resources :submissions do

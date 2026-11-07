@@ -21,6 +21,76 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "search is accessible from the header without login" do
+    get root_url
+    assert_select "header form[action=?][method=get][role=search]", search_path do
+      assert_select "input[type=search][name=q][aria-label=?]", "Search submissions by title"
+      assert_select "input[type=submit][value=Search]"
+    end
+
+    get search_url
+    assert_response :success
+    assert_select "header form[action=?][method=get][role=search]", search_path do
+      assert_select "input[type=search][name=q]"
+      assert_select "input[type=submit][value=Search]"
+    end
+    assert_select "tr.athing", count: 0
+    assert_select "p", text: "Enter a word to search submission titles."
+  end
+
+  test "search matches URL and Ask titles and sorts by points then newest" do
+    older = Submission.create!(title: "Rails guide", url: "https://search.example/older", user: users(:one), points: 10, created_at: 2.days.ago)
+    newer = Submission.create!(title: "Ask about RAILS", user: users(:one), points: 10, created_at: 1.day.ago)
+    lower = Submission.create!(title: "Learning rails today", user: users(:two), points: 2)
+    Submission.create!(title: "Unrelated title", url: "https://search.example/rails", text: "rails", user: users(:one), points: 100)
+
+    get search_url, params: { q: "  rAiLs  " }
+
+    assert_response :success
+    assert_select "input[name=q][value=?]", "rAiLs"
+    assert_select "tr.athing" do |rows|
+      assert_equal [ newer, older, lower ].map { |submission| "submission_#{submission.id}" }, rows.map { |row| row["id"] }
+    end
+    [ older, newer, lower ].each do |submission|
+      assert_select ".titleline a[href=?]", submission_path(submission), text: submission.title
+    end
+  end
+
+  test "search displays a message when no titles match" do
+    get search_url, params: { q: "no-matching-title" }
+
+    assert_response :success
+    assert_select "tr.athing", count: 0
+    assert_select "p[role=status]", text: "No submissions found for “no-matching-title”. Try another word."
+  end
+
+  test "blank search does not return every submission" do
+    get search_url, params: { q: "   " }
+
+    assert_response :success
+    assert_select "tr.athing", count: 0
+    assert_select "p", text: "Enter a word to search submission titles."
+  end
+
+  test "search treats SQL wildcard and escape characters literally" do
+    [ "%", "_", "!", "\\" ].each do |character|
+      match = Submission.create!(title: "Contains #{character} literally", user: users(:one))
+
+      get search_url, params: { q: character }
+
+      assert_response :success
+      assert_select "tr.athing", count: 1
+      assert_select "tr#submission_#{match.id}"
+    end
+  end
+
+  test "search treats SQL injection text as a literal query" do
+    get search_url, params: { q: "' OR 1=1 --" }
+
+    assert_response :success
+    assert_select "tr.athing", count: 0
+  end
+
   test "should get new" do
     sign_in
     get new_submission_url

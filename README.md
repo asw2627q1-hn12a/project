@@ -23,6 +23,7 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
   - `ask`: títol + text, sense URL.
 - **`/news`** (i `/`): submissions de tipus URL ordenades per punts.
 - **`/newest`**: totes les submissions, de la més nova a la més antiga.
+- **`/search`**: cerca pel títol des de la barra superior, sense distingir majúscules i minúscules; inclou URL i Ask, ordenades per punts i, en cas d’empat, per data més recent, com a la portada.
 - **Perfil d'usuari** (`/users/:id`) amb avatar i banner.
 
 ## Stack

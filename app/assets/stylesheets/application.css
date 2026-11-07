@@ -24,6 +24,7 @@ body {
 
 .hn-header-left {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
@@ -146,6 +147,40 @@ body {
 
 .hn-itemlist {
   padding-left: 6px;
+}
+
+.hn-search {
+  margin: 0 10px 16px;
+}
+
+.hn-search h1 {
+  font-size: 12pt;
+  margin: 0 0 12px;
+}
+
+.hn-header-search {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.hn-header-search input {
+  font: inherit;
+}
+
+.hn-header-search input[type="search"] {
+  box-sizing: border-box;
+  width: 240px;
+}
+
+.hn-header-search input:focus {
+  outline: none;
+}
+
+.hn-header-search input:focus-visible {
+  outline: 1px solid #a33f00;
+  outline-offset: 1px;
 }
 
 .rank {

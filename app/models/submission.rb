@@ -4,6 +4,11 @@ class Submission < ApplicationRecord
   belongs_to :user
   has_many :comments, dependent: :destroy
 
+  scope :by_relevance, -> { order(points: :desc, created_at: :desc) }
+  scope :with_title_containing, ->(query) {
+    where("LOWER(title) LIKE ? ESCAPE '!'", "%#{sanitize_sql_like(query.downcase, "!")}%")
+  }
+
   # Antes de validar, limpiamos espacios y asignamos el tipo automáticamente
   before_validation :normalize_fields
 

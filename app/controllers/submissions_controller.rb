@@ -4,7 +4,18 @@ class SubmissionsController < ApplicationController
 
   # GET /submissions or /news or /
   def index
-    @submissions = Submission.where(submission_type: "url").includes(:user).order(points: :desc, created_at: :desc)
+    @submissions = Submission.where(submission_type: "url").includes(:user).by_relevance
+  end
+
+  # GET /search
+  def search
+    @query = params[:q].to_s.strip
+    @submissions = if @query.present?
+      Submission.with_title_containing(@query).includes(:user).by_relevance
+    else
+      Submission.none
+    end
+    render :index
   end
 
   # GET /submissions/1 or /submissions/1.json
