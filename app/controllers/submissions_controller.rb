@@ -86,6 +86,6 @@ class SubmissionsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def submission_params
-      params.expect(submission: [ :title, :url, :text, :submission_type ])
+      params.expect(submission: [ :title, :url, :text ])
     end
 end

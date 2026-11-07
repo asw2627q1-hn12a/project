@@ -27,6 +27,73 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "submit page requires login and shows title URL and text fields" do
+    get submit_url
+    assert_redirected_to root_url
+
+    sign_in
+    get submit_url
+
+    assert_response :success
+    assert_select "input[name='submission[title]']"
+    assert_select "input[name='submission[url]'][type='url']"
+    assert_select "textarea[name='submission[text]']"
+    assert_select "input[name='submission[user_id]']", count: 0
+    assert_select "input[name='submission[submission_type]']", count: 0
+  end
+
+  test "anonymous users cannot create a submission" do
+    assert_no_difference("Submission.count") do
+      post submissions_url, params: { submission: { title: "Anonymous", url: "", text: "A question" } }
+    end
+
+    assert_redirected_to root_url
+  end
+
+  test "blank URL creates an Ask submission with text by the logged in user" do
+    sign_in
+
+    assert_difference("Submission.count", 1) do
+      post submissions_url, params: {
+        submission: { title: "Ask the community", url: "", text: "What do you think?", submission_type: "url" }
+      }
+    end
+
+    assert_redirected_to newest_url
+    submission = Submission.order(:id).last
+    assert_equal "ask", submission.submission_type
+    assert_nil submission.url
+    assert_equal "What do you think?", submission.text
+    assert_equal "github-submissions-controller", submission.user.uid
+  end
+
+  test "invalid submit preserves fields and displays validation errors" do
+    sign_in
+
+    assert_no_difference("Submission.count") do
+      post submissions_url, params: {
+        submission: { title: "", url: "not a URL", text: "Draft text" }
+      }
+    end
+
+    assert_response :unprocessable_content
+    assert_select "input[name='submission[url]'][value='not a URL']"
+    assert_select "textarea[name='submission[text]']", text: "Draft text"
+    assert_select "li", minimum: 1
+  end
+
+  test "duplicate URL redirects to the existing submission" do
+    sign_in
+
+    assert_no_difference("Submission.count") do
+      post submissions_url, params: {
+        submission: { title: "Another title", url: "  HTTPS://EXAMPLE.COM  ", text: "Another description" }
+      }
+    end
+
+    assert_redirected_to submission_url(Submission.find_by!(url: "https://example.com"))
+  end
+
   test "should create submission" do
     sign_in
 

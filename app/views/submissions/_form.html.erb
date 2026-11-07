@@ -12,12 +12,13 @@
 
   <div>
     <%= form.label :title, "title" %><br>
-    <%= form.text_field :title %>
+    <%= form.text_field :title, required: true %>
   </div>
 
   <div>
     <%= form.label :url, "url" %><br>
-    <%= form.text_field :url %>
+    <%= form.url_field :url, placeholder: "https://example.com" %>
+    <small>Leave the URL blank to submit an Ask post.</small>
   </div>
 
   <div>
