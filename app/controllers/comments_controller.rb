@@ -78,10 +78,13 @@ class CommentsController < ApplicationController
   def threads
     comments = current_user.comments
                  .where(deleted_at: nil)
-                 .includes(:submission, :user, :parent, replies: :user)
+                 .includes(:submission, :user, replies: :user)
                  .order(created_at: :desc)
-    # Evita repetir un comentari que ja surt dins del fil d'un altre comentari propi
-    @comments = comments.reject { |c| c.parent&.user_id == current_user.id && !c.parent.deleted? }
+    own_ids = comments.map(&:id).to_set
+    # Mapa id => parent_id de tots els comentaris de les submissions afectades (una sola consulta)
+    parent_ids = Comment.where(submission_id: comments.map(&:submission_id).uniq).pluck(:id, :parent_id).to_h
+    # Evita repetir un comentari que ja surt dins del fil d'un comentari propi (a qualsevol nivell)
+    @comments = comments.reject { |comment| own_ancestor?(comment, own_ids, parent_ids) }
   end
 
   private
@@ -105,5 +108,15 @@ class CommentsController < ApplicationController
       return if @comment.user == current_user && !@comment.deleted?
 
       head :forbidden
+    end
+
+    def own_ancestor?(comment, own_ids, parent_ids)
+      ancestor_id = comment.parent_id
+      while ancestor_id
+        return true if own_ids.include?(ancestor_id)
+
+        ancestor_id = parent_ids[ancestor_id]
+      end
+      false
     end
 end
