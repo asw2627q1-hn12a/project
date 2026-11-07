@@ -352,6 +352,72 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Text original", comment.reload.body
   end
 
+  test "redirects anonymous users away from threads" do
+    get threads_url
+
+    assert_redirected_to root_url
+    assert_equal "Cal iniciar sessió per continuar.", flash[:alert]
+  end
+
+  test "shows the logged in user's comments with their replies in threads" do
+    sign_in
+    logged_in_user = User.find_by!(uid: "github-comments-controller")
+    mine = Comment.create!(submission: @submission, user: logged_in_user, body: "El meu comentari")
+    reply = Comment.create!(
+      submission: @submission, user: users(:two), body: "Resposta d'un altre", parent: mine
+    )
+    other = Comment.create!(submission: submissions(:two), user: users(:two), body: "Comentari aliè")
+
+    get threads_url
+
+    assert_response :success
+    assert_select "#comment_#{mine.id}"
+    assert_select "#comment_#{mine.id} #comment_#{reply.id}"
+    assert_select "#comment_#{other.id}", 0
+  end
+
+  test "does not repeat own replies or show deleted own comments in threads" do
+    sign_in
+    logged_in_user = User.find_by!(uid: "github-comments-controller")
+    root = Comment.create!(submission: @submission, user: logged_in_user, body: "Arrel pròpia")
+    own_reply = Comment.create!(
+      submission: @submission, user: logged_in_user, body: "Resposta pròpia", parent: root
+    )
+    deleted = Comment.create!(submission: @submission, user: logged_in_user, body: "Comentari esborrat")
+    deleted.soft_delete!
+
+    get threads_url
+
+    assert_response :success
+    assert_select "#comment_#{own_reply.id}", 1
+    assert_select "#comment_#{deleted.id}", 0
+  end
+
+  test "does not repeat own comments nested at any depth under another own comment in threads" do
+    sign_in
+    logged_in_user = User.find_by!(uid: "github-comments-controller")
+    a = Comment.create!(submission: @submission, user: logged_in_user, body: "A propi")
+    b = Comment.create!(submission: @submission, user: users(:two), body: "B d'un altre", parent: a)
+    c = Comment.create!(submission: @submission, user: logged_in_user, body: "C propi", parent: b)
+
+    deleted_root = Comment.create!(submission: @submission, user: logged_in_user, body: "Arrel esborrada")
+    other_reply = Comment.create!(
+      submission: @submission, user: users(:two), body: "Resposta d'un altre", parent: deleted_root
+    )
+    under_deleted = Comment.create!(
+      submission: @submission, user: logged_in_user, body: "Sota un esborrat", parent: other_reply
+    )
+    deleted_root.soft_delete!
+
+    get threads_url
+
+    assert_response :success
+    assert_select "#comment_#{c.id}", 1
+    assert_select "#comment_#{a.id} #comment_#{b.id} #comment_#{c.id}"
+    assert_select "#comment_#{under_deleted.id}", 1
+    assert_select "#comment_#{deleted_root.id}", 0
+  end
+
   private
 
   def sign_in

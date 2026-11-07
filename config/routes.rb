@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get "/newest", to: "submissions#newest", as: :newest
   get "/search", to: "submissions#search", as: :search
   get "/newcomments", to: "comments#index", as: :comments
+  get "/threads", to: "comments#threads", as: :threads
 
   resources :submissions do
     resources :comments, only: %i[ show new create edit update destroy ]
