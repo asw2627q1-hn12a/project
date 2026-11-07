@@ -1,6 +1,6 @@
 class SubmissionsController < ApplicationController
   before_action :set_submission, only: %i[ show edit update destroy ]
-  before_action :require_login, only: %i[new create]
+  before_action :require_login_for_submit, only: %i[new create]
 
   # GET /submissions or /news or /
   def index
@@ -79,6 +79,12 @@ class SubmissionsController < ApplicationController
   end
 
   private
+    def require_login_for_submit
+      return if current_user
+
+      redirect_to root_path(anchor: "login"), alert: "Cal iniciar sessió per publicar una submission."
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_submission
       @submission = Submission.find(params.expect(:id))
@@ -86,6 +92,6 @@ class SubmissionsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def submission_params
-      params.expect(submission: [ :title, :url, :text, :submission_type ])
+      params.expect(submission: [ :title, :url, :text ])
     end
 end
