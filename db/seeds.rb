@@ -111,4 +111,13 @@ submissions_data.each do |data|
   )
 end
 
+puts "Creando submissions de tipo Ask..."
+[
+  { title: "Ask HN: How do you learn a new codebase quickly?", text: "Any tips for getting up to speed on a big Rails project?", points: 87, user: users[4], created_at: 2.hours.ago },
+  { title: "Ask HN: Is SQLite enough for a side project in production?", text: "Thinking of skipping Postgres entirely.", points: 54, user: users[3], created_at: 5.hours.ago },
+  { title: "Ask HN: What was your favourite course at university?", points: 12, user: users[2], created_at: 1.day.ago }
+].each do |data|
+  Submission.create!(data.merge(submission_type: "ask", updated_at: data[:created_at]))
+end
+
 puts "¡Seeds completados! #{User.count} usuarios y #{Submission.count} submissions creadas."

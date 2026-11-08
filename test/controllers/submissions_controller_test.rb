@@ -56,6 +56,23 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "ask lists only Ask submissions sorted by points then newest" do
+    older = Submission.create!(title: "Ask older", user: users(:one), points: 5, created_at: 2.days.ago)
+    newer = Submission.create!(title: "Ask newer", user: users(:two), points: 5, created_at: 1.day.ago)
+    top = Submission.create!(title: "Ask top", text: "Some question", user: users(:one), points: 20)
+
+    get ask_url
+
+    assert_response :success
+    assert_select "tr.athing" do |rows|
+      assert_equal [ top, newer, older ].map { |submission| "submission_#{submission.id}" }, rows.map { |row| row["id"] }
+    end
+    [ top, newer, older ].each do |submission|
+      assert_select ".titleline a[href=?]", submission_path(submission), text: submission.title
+    end
+    assert_select "nav a[href=?]", ask_path, text: "ask"
+  end
+
   test "search displays a message when no titles match" do
     get search_url, params: { q: "no-matching-title" }
 
