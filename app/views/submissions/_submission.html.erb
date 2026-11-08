@@ -3,9 +3,9 @@
 
   <div class="submission-heading-content">
     <h1 class="submission-heading-title">
-      <%= link_to submission.title, submission.url.presence || submission_path(submission) %>
+      <%= sanitize(tag.a(submission.title, href: submission.url.presence || submission_path(submission)), tags: %w[a], attributes: %w[href]) %>
       <% if submission.domain.present? %>
-        <span class="submission-heading-domain">(<%= link_to submission.domain, submission.url %>)</span>
+        <span class="submission-heading-domain">(<%= sanitize(tag.a(submission.domain, href: submission.url), tags: %w[a], attributes: %w[href]) %>)</span>
       <% end %>
     </h1>
 
