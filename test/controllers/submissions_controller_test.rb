@@ -229,7 +229,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
       get submission_url(@submission)
 
       assert_response :success
-      assert_select ".submission-heading-title", text: @submission.title
+      assert_select ".submission-heading-title > a", text: @submission.title
       assert_select ".submission-heading a[href^='javascript:']", count: 0
       assert_select ".submission-heading a[href^='data:']", count: 0
     end
