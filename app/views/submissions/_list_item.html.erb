@@ -1,0 +1,52 @@
+<!-- Fila 1: Ranking, flecha de voto, título y dominio -->
+<tr class="athing" id="submission_<%= submission.id %>">
+  <td align="right" valign="top" class="title">
+    <% if local_assigns[:submission_counter] %>
+      <span class="rank"><%= submission_counter + 1 %>.</span>
+    <% end %>
+  </td>
+  <td valign="top" class="votelinks">
+    <% if action_name == "edit" || action_name == "update" %>
+      <span class="submission-owner-marker" aria-label="Your submission">*</span>
+    <% else %>
+      <span class="votearrow" title="upvote">&#9650;</span>
+    <% end %>
+  </td>
+  <td class="title">
+    <span class="titleline">
+      <% if action_name == "search" || submission.url.blank? %>
+        <%= link_to submission.title, submission_path(submission) %>
+      <% else %>
+        <a href="<%= submission.url %>" target="_blank" rel="noopener"><%= submission.title %></a>
+      <% end %>
+      <% if submission.domain.present? %>
+        <span class="sitebit comhead">
+          (<a href="<%= submission.url %>"><span class="sitestr"><%= submission.domain %></span></a>)
+        </span>
+      <% end %>
+    </span>
+  </td>
+</tr>
+
+<!-- Fila 2: Puntos, usuario creador, tiempo transcurrido y acciones -->
+<tr>
+  <td colspan="2"></td>
+  <td class="subtext">
+    <span class="score"><%= submission.points %> points</span>
+    by <a href="<%= user_path(submission.user) %>" class="hnuser"><%= submission.user.username %></a>
+    <span class="age">
+      <a href="<%= submission_path(submission) %>"><%= time_ago_in_words(submission.created_at) %> ago</a>
+    </span>
+    | <a href="<%= submission_path(submission) %>">discuss</a>
+    <% if current_user == submission.user %>
+      <% unless action_name == "edit" || action_name == "update" %>
+        | <%= link_to "edit", edit_submission_path(submission) %>
+      <% end %>
+      | <%= button_to "delete", submission, method: :delete, class: "submission-delete-button",
+                      form: { class: "submission-delete-form", data: { turbo_confirm: "Delete this submission and all its comments and replies? This cannot be undone." } } %>
+    <% end %>
+  </td>
+</tr>
+
+<!-- Fila 3: Espaciador de 5px exacto al de HN -->
+<tr class="spacer" style="height:5px"></tr>

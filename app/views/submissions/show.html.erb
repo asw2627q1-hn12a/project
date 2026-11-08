@@ -4,10 +4,14 @@
 <%= render @submission %>
 
 <div>
-  <%= link_to "Edit this submission", edit_submission_path(@submission) %> |
   <%= link_to "Back to submissions", submissions_path %>
 
-  <%= button_to "Destroy this submission", @submission, method: :delete %>
+  <% if current_user == @submission.user %>
+    | <%= link_to "Edit this submission", edit_submission_path(@submission) %>
+    <p>Deleting this submission permanently deletes all its comments and replies.</p>
+    <%= button_to "Destroy this submission", @submission, method: :delete,
+                  form: { data: { turbo_confirm: "Delete this submission and all its comments and replies? This cannot be undone." } } %>
+  <% end %>
 </div>
 
 <section id="comments" class="comments-section">

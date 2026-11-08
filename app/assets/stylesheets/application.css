@@ -123,6 +123,27 @@ body {
   margin: 8px 0 0 34px;
 }
 
+.submission-edit-page {
+  padding: 4px 0 16px;
+}
+
+.submission-edit-page .submission-form {
+  margin-top: 24px;
+}
+
+.submission-edit-page .submission-form-field {
+  grid-template-columns: 30px minmax(0, 490px);
+}
+
+.submission-edit-page .submission-form-actions {
+  margin: 22px 0 0;
+}
+
+.submission-owner-marker {
+  padding: 0 4px;
+  color: #ff6600;
+}
+
 .submit-help {
   color: #828282;
   font-size: 9pt;
@@ -229,6 +250,24 @@ body {
 }
 
 .subtext a:hover {
+  text-decoration: underline;
+}
+
+.submission-delete-form {
+  display: inline;
+  margin: 0;
+}
+
+.submission-delete-button {
+  border: 0;
+  padding: 0;
+  color: #828282;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.submission-delete-button:hover {
   text-decoration: underline;
 }
 
@@ -404,6 +443,18 @@ body {
   margin: 5px 0 0 13px;
   color: #828282;
   font-size: 8pt;
+}
+
+@media (max-width: 800px) {
+  .hn-container {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hn-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
 
 @media (max-width: 600px) {

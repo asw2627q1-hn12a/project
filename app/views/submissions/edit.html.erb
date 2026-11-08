@@ -1,12 +1,11 @@
 <% content_for :title, "Editing submission" %>
 
-<h1>Editing submission</h1>
+<section class="submission-edit-page" aria-label="Edit submission">
+  <table class="hn-itemlist" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <%= render "list_item", submission: @submission %>
+    </tbody>
+  </table>
 
-<%= render "form", submission: @submission %>
-
-<br>
-
-<div>
-  <%= link_to "Show this submission", @submission %> |
-  <%= link_to "Back to submissions", submissions_path %>
-</div>
+  <%= render "form", submission: @submission %>
+</section>

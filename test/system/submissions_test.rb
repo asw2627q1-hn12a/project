@@ -48,25 +48,49 @@ class SubmissionsTest < ApplicationSystemTestCase
   end
 
   test "should update Submission" do
-    visit submission_url(@submission)
-    click_on "Edit this submission", match: :first
+    sign_in_as_owner
+    visit root_url
+    click_on "edit", exact: true
 
+    assert_field "title", with: @submission.title
+    assert_field "url", with: @submission.url
     fill_in "title", with: "Updated system test submission"
     fill_in "url", with: "https://system-updated.example.test/submission"
-    click_button "submit"
+    click_button "update"
 
     assert_text "Submission was successfully updated"
-    click_on "Back"
+    assert_text "Updated system test submission"
   end
 
   test "should destroy Submission" do
-    visit submission_url(@submission)
-    click_on "Destroy this submission", match: :first
+    sign_in_as_owner
+    visit root_url
+    accept_confirm "Delete this submission and all its comments and replies? This cannot be undone." do
+      click_on "delete", exact: true
+    end
 
     assert_text "Submission was successfully destroyed"
   end
 
+  test "cancelling deletion keeps the submission" do
+    sign_in_as_owner
+    visit submission_url(@submission)
+
+    dismiss_confirm do
+      click_on "Destroy this submission", match: :first
+    end
+
+    assert_current_path submission_path(@submission)
+    assert_text @submission.title
+    assert Submission.exists?(@submission.id)
+  end
+
   private
+
+  def sign_in_as_owner
+    users(:one).update!(provider: "github", uid: "github-submissions-system")
+    sign_in
+  end
 
   def sign_in
     visit "/auth/github/callback"
