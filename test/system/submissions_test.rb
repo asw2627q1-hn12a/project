@@ -49,19 +49,19 @@ class SubmissionsTest < ApplicationSystemTestCase
 
   test "should update Submission" do
     visit submission_url(@submission)
-    click_on "Edit this submission", match: :first
+    click_on "Edit", exact: true
 
     fill_in "title", with: "Updated system test submission"
     fill_in "url", with: "https://system-updated.example.test/submission"
     click_button "submit"
 
     assert_text "Submission was successfully updated"
-    click_on "Back"
+    click_on "Back to submissions", exact: true
   end
 
   test "should destroy Submission" do
     visit submission_url(@submission)
-    click_on "Destroy this submission", match: :first
+    click_on "Delete", exact: true
 
     assert_text "Submission was successfully destroyed"
   end
