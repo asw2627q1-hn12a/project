@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get "/ask", to: "submissions#ask", as: :ask
 
   resources :submissions do
+    resource :vote, only: %i[ create destroy ], controller: "submission_votes"
     resources :comments, only: %i[ show new create edit update destroy ]
   end
   resources :users, except: %i[ new create ]

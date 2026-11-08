@@ -2,6 +2,7 @@ require "uri"
 
 class Submission < ApplicationRecord
   belongs_to :user
+  has_many :submission_votes, dependent: :destroy
   has_many :comments, dependent: :destroy
 
   scope :by_relevance, -> { order(points: :desc, created_at: :desc) }
