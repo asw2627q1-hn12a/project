@@ -21,6 +21,7 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 - **Vote/unvote de submissions** al detall i als llistats: només amb sessió, sobre submissions alienes i un vot per usuari. Votar suma un punt i retirar el vot propi en resta un. Les submissions noves conserven el punt inicial, sense vot automàtic de l'autor.
   - Presentació inspirada en Hacker News: triangle gris per votar, que desapareix després del vot, i acció `unvote` al costat dels punts, autor i antiguitat del llistat. Són formularis POST/DELETE amb protecció CSRF, encara que visualment semblin enllaços. No cal JavaScript.
   - Referència visual del triangle: [CSS original](https://news.ycombinator.com/news.css) i [SVG original](https://news.ycombinator.com/triangle.svg) de Hacker News; es mostra a 10 × 10 píxels amb els mateixos marges. El gràfic es conserva localment a `app/assets/images/hn-vote-triangle.svg`.
+- **Vote/unvote de comentaris**, també de respostes: mateix punt inicial i restriccions de propietat i unicitat que les submissions. Es mostren el triangle i `unvote` al fil, al detall, als comentaris recents i als threads. Els comentaris eliminats no admeten vots nous; els vots anteriors es conserven i es poden retirar.
 - **Submissions** de dos tipus:
   - `url`: títol + URL (la URL ha de ser única; si ja existeix, es redirigeix a la submission original).
   - `ask`: títol + text, sense URL.

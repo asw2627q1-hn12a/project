@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_190155) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_09_123216) do
+  create_table "comment_votes", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "comment_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id"], name: "index_comment_votes_on_comment_id"
+    t.index ["user_id", "comment_id"], name: "index_comment_votes_on_user_id_and_comment_id", unique: true
+    t.index ["user_id"], name: "index_comment_votes_on_user_id"
+  end
+
   create_table "comments", force: :cascade do |t|
     t.text "body", null: false
     t.integer "submission_id", null: false
@@ -19,6 +29,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_190155) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "deleted_at"
+    t.integer "points", default: 1, null: false
     t.index ["deleted_at"], name: "index_comments_on_deleted_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["submission_id"], name: "index_comments_on_submission_id"
@@ -60,6 +71,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_190155) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "comment_votes", "comments"
+  add_foreign_key "comment_votes", "users"
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "submissions"
   add_foreign_key "comments", "users"
