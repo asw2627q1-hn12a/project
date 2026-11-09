@@ -9,7 +9,7 @@ class SubmissionVotesController < ApplicationController
       @submission.submission_votes.find_or_create_by!(user: current_user)
     end
 
-    redirect_to @submission, status: :see_other
+    redirect_back_or_to @submission, allow_other_host: false, status: :see_other
   end
 
   def destroy
@@ -17,7 +17,7 @@ class SubmissionVotesController < ApplicationController
       current_user.submission_votes.find_by(submission_id: @submission.id)&.destroy!
     end
 
-    redirect_to @submission, status: :see_other
+    redirect_back_or_to @submission, allow_other_host: false, status: :see_other
   end
 
   private

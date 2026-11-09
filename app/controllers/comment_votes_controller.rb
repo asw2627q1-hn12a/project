@@ -9,7 +9,8 @@ class CommentVotesController < ApplicationController
       @comment.comment_votes.find_or_create_by!(user: current_user)
     end
 
-    redirect_to submission_comment_path(@comment.submission, @comment), status: :see_other
+    redirect_back_or_to submission_comment_path(@comment.submission, @comment),
+                        allow_other_host: false, status: :see_other
   end
 
   def destroy
@@ -17,7 +18,8 @@ class CommentVotesController < ApplicationController
       current_user.comment_votes.find_by(comment_id: @comment.id)&.destroy!
     end
 
-    redirect_to submission_comment_path(@comment.submission, @comment), status: :see_other
+    redirect_back_or_to submission_comment_path(@comment.submission, @comment),
+                        allow_other_host: false, status: :see_other
   end
 
   private

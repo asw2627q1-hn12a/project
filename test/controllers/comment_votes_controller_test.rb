@@ -19,6 +19,37 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth.clear
   end
 
+  test "voting and withdrawing return to the original local page" do
+    sign_in
+
+    [ submission_url(@submission), comments_url, threads_url ].each do |url|
+      post vote_url, headers: { "HTTP_REFERER" => url }
+
+      assert_response :see_other
+      assert_redirected_to url
+      follow_redirect!
+      assert_response :success
+      assert_equal 2, @comment.reload.points
+
+      delete vote_url, headers: { "HTTP_REFERER" => url }
+
+      assert_response :see_other
+      assert_redirected_to url
+      assert_equal 1, @comment.reload.points
+    end
+  end
+
+  test "external referrers fall back to the comment detail" do
+    sign_in
+    headers = { "HTTP_REFERER" => "https://external.example/vote" }
+
+    post vote_url, headers: headers
+    assert_redirected_to submission_comment_url(@submission, @comment)
+
+    delete vote_url, headers: headers
+    assert_redirected_to submission_comment_url(@submission, @comment)
+  end
+
   test "anonymous readers see points but no voting forms" do
     get submission_url(@submission)
 

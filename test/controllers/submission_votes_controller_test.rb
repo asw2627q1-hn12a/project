@@ -18,6 +18,37 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth.clear
   end
 
+  test "voting and withdrawing return to the original local page including search" do
+    sign_in
+
+    [ root_url, newest_url, ask_url, search_url(q: "MyString") ].each do |url|
+      post submission_vote_url(@submission), headers: { "HTTP_REFERER" => url }
+
+      assert_response :see_other
+      assert_redirected_to url
+      follow_redirect!
+      assert_response :success
+      assert_equal 2, @submission.reload.points
+
+      delete submission_vote_url(@submission), headers: { "HTTP_REFERER" => url }
+
+      assert_response :see_other
+      assert_redirected_to url
+      assert_equal 1, @submission.reload.points
+    end
+  end
+
+  test "external referrers fall back to the submission detail" do
+    sign_in
+    headers = { "HTTP_REFERER" => "https://external.example/vote" }
+
+    post submission_vote_url(@submission), headers: headers
+    assert_redirected_to submission_url(@submission)
+
+    delete submission_vote_url(@submission), headers: headers
+    assert_redirected_to submission_url(@submission)
+  end
+
   test "submission detail hides voting controls without a session" do
     get submission_url(@submission)
 
