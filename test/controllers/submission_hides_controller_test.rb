@@ -311,6 +311,18 @@ class SubmissionHidesControllerTest < ActionDispatch::IntegrationTest
     ActionController::Base.allow_forgery_protection = previous
   end
 
+  test "private list shows the comment count of hidden submissions" do
+    sign_in
+    post submission_hide_url(@submission)
+    2.times { |i| Comment.create!(submission: @submission, user: users(:one), body: "Comentari #{i}") }
+
+    get hidden_submissions_url
+
+    assert_response :success
+    assert_select "tr#submission_#{@submission.id}"
+    assert_select "a[href=?]", submission_path(@submission, anchor: "comments"), text: "2 comments"
+  end
+
   private
 
   def sign_in
