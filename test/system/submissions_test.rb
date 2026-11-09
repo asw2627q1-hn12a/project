@@ -27,6 +27,7 @@ class SubmissionsTest < ApplicationSystemTestCase
       fill_in "Search submissions by title", with: @submission.title
     end
     click_button "Search"
+    assert_current_path search_path, ignore_query: true
 
     within "#submission_#{@submission.id}" do
       click_link @submission.title
