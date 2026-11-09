@@ -49,6 +49,8 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", submission_path(commented, anchor: "comments"), text: "2 comments"
     assert_select "a[href=?]", submission_path(single, anchor: "comments"), text: "1 comment"
     assert_select "a[href=?]", submission_path(silent, anchor: "comments"), text: "discuss"
+  end
+
   test "newest lists submissions from newest to oldest" do
     older = Submission.create!(
       title: "Older submission",

@@ -21,7 +21,7 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 - **Submissions** de dos tipus:
   - `url`: títol + URL (la URL ha de ser única; si ja existeix, es redirigeix a la submission original).
   - `ask`: títol + text, sense URL.
-- **`/news`** (i `/`): submissions de tipus URL ordenades per punts.
+- **`/news`** (i `/`): submissions de tipus URL i Ask ordenades per rellevància (punts i, en cas d'empat, les més recents primer), amb el nombre de comentaris de cada una.
 - **`/newest`**: totes les submissions, de la més nova a la més antiga.
 - **`/search`**: cerca pel títol des de la barra superior, sense distingir majúscules i minúscules; inclou URL i Ask, ordenades per punts i, en cas d’empat, per data més recent, com a la portada.
 - **Gestió de submissions pròpies**: només l'autor autenticat pot editar o eliminar una submission. L'edició carrega les dades actuals i valida el títol, el format HTTP/HTTPS i les URL duplicades. Eliminar una submission elimina definitivament tots els seus comentaris i respostes, inclosos els comentaris marcats com a eliminats; es demana confirmació abans d'enviar l'eliminació.

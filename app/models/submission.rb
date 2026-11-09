@@ -8,6 +8,11 @@ class Submission < ApplicationRecord
   scope :with_title_containing, ->(query) {
     where("LOWER(title) LIKE ? ESCAPE '!'", "%#{sanitize_sql_like(query.downcase, "!")}%")
   }
+  scope :with_comments_count, -> {
+    left_joins(:comments)
+      .select("submissions.*, COUNT(comments.id) AS comments_count")
+      .group("submissions.id")
+  }
 
   # Antes de validar, limpiamos espacios y asignamos el tipo automáticamente
   before_validation :normalize_fields
@@ -33,6 +38,11 @@ class Submission < ApplicationRecord
     uri.host&.sub(/^www\./, "")
   rescue URI::InvalidURIError
     nil
+  end
+
+  # Nombre de comentaris: usa el recompte agrupat de la BD si ve de with_comments_count
+  def comments_total
+    has_attribute?(:comments_count) ? self[:comments_count] : comments.count
   end
 
   private
