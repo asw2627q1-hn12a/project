@@ -1,0 +1,11 @@
+<% if !current_user %>
+  <%= render "shared/vote_login_button" %>
+<% elsif submission.user_id != current_user.id %>
+  <%= button_to (voted ? "unvote" : "▲"),
+                submission_vote_path(submission),
+                method: voted ? :delete : :post,
+                class: "hn-vote-button#{' hn-vote-button--arrow' unless voted}",
+                title: voted ? "unvote" : "upvote",
+                aria: { label: voted ? "unvote" : "vote" },
+                form: { class: "hn-vote-form" } %>
+<% end %>

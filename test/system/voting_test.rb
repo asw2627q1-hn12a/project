@@ -1,0 +1,124 @@
+require "application_system_test_case"
+
+class VotingTest < ApplicationSystemTestCase
+  setup do
+    @submission = submissions(:one)
+    @comment = Comment.create!(submission: @submission, user: users(:one), body: "Comentari de prova de navegador")
+    voter = users(:two)
+    voter.update!(provider: "github", uid: "github-voting-system")
+    OmniAuth.config.test_mode = true
+    OmniAuth.config.mock_auth[:github] = OmniAuth::AuthHash.new(
+      provider: "github",
+      uid: voter.uid,
+      info: { nickname: voter.username }
+    )
+  end
+
+  teardown do
+    OmniAuth.config.test_mode = false
+    OmniAuth.config.mock_auth.clear
+  end
+
+  test "anonymous submission triangle opens login without casting a vote" do
+    visit root_url
+    within "#submission_#{@submission.id} .hn-vote-login-form" do
+      click_button "▲", exact: true
+    end
+
+    assert_button "logout"
+    assert_equal 0, @submission.submission_votes.count
+    assert_equal 1, @submission.reload.points
+    within "#submission_#{@submission.id}" do
+      assert_button "▲"
+    end
+  end
+
+  test "anonymous comment triangle opens login without casting a vote" do
+    visit submission_url(@submission)
+    within "#comment_#{@comment.id} .hn-vote-login-form" do
+      click_button "▲", exact: true
+    end
+
+    assert_button "logout"
+    assert_equal 0, @comment.comment_votes.count
+    assert_equal 1, @comment.reload.points
+  end
+
+  test "votes and withdraws a submission vote through the browser" do
+    visit "/auth/github/callback"
+    visit root_url
+
+    within "#submission_#{@submission.id}" do
+      click_button "▲"
+    end
+
+    assert_current_path root_path
+    within "#submission_#{@submission.id} + tr" do
+      assert_text "2 points"
+      assert_button "unvote"
+    end
+
+    visit root_url
+    within "#submission_#{@submission.id} + tr" do
+      assert_text "2 points"
+      click_button "unvote"
+    end
+
+    assert_current_path root_path
+    visit root_url
+    within "#submission_#{@submission.id}" do
+      assert_button "▲"
+    end
+    assert_equal 1, @submission.reload.points
+  end
+
+  test "votes and withdraws a comment vote through the browser" do
+    visit "/auth/github/callback"
+    visit submission_url(@submission)
+
+    within "#comment_#{@comment.id}" do
+      click_button "▲"
+    end
+
+    assert_current_path submission_path(@submission)
+    within "#comment_#{@comment.id}" do
+      assert_text "2 punts"
+      assert_button "unvote"
+    end
+
+    visit comments_url
+    within "#comment_#{@comment.id}" do
+      assert_text "2 punts"
+      click_button "unvote"
+    end
+
+    assert_current_path comments_path
+    within "#comment_#{@comment.id}" do
+      assert_text "1 punt"
+      assert_button "▲"
+    end
+    assert_equal 1, @comment.reload.points
+  end
+
+  test "voting from search preserves the query and shows the updated state" do
+    visit "/auth/github/callback"
+    visit search_url(q: @submission.title)
+
+    within "#submission_#{@submission.id}" do
+      click_button "▲"
+    end
+
+    assert_current_path search_path(q: @submission.title)
+    assert_field "Search submissions by title", with: @submission.title
+    within "#submission_#{@submission.id} + tr" do
+      assert_text "2 points"
+      click_button "unvote"
+    end
+
+    assert_current_path search_path(q: @submission.title)
+    within "#submission_#{@submission.id}" do
+      assert_button "▲"
+    end
+    assert_equal 1, @submission.reload.points
+  end
+end
