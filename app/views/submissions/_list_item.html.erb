@@ -41,7 +41,9 @@
     <% if voted %>
       | <%= render "submissions/vote_button", submission: submission, voted: true %>
     <% end %>
-    | <a href="<%= submission_path(submission) %>">discuss</a>
+    <% comments_count = submission.comments_total %>
+    | <%= link_to (comments_count.zero? ? "discuss" : pluralize(comments_count, "comment")),
+                  submission_path(submission, anchor: "comments") %>
     <% if current_user %>
       | <%= render "submissions/hide_button", submission: submission, hidden: local_assigns.fetch(:hidden, false) %>
     <% end %>
