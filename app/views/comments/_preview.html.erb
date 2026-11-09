@@ -1,6 +1,6 @@
 <% voted = comment_voted?(comment) %>
 <div class="comment-header">
-  <% if current_user && comment.user_id != current_user.id && !comment.deleted? && !voted %>
+  <% if !comment.deleted? && !voted && (!current_user || comment.user_id != current_user.id) %>
     <%= render "comments/vote_button", comment: comment, voted: false %>
   <% end %>
   <div class="comment-meta">

@@ -19,6 +19,31 @@ class VotingTest < ApplicationSystemTestCase
     OmniAuth.config.mock_auth.clear
   end
 
+  test "anonymous submission triangle opens login without casting a vote" do
+    visit root_url
+    within "#submission_#{@submission.id} .hn-vote-login-form" do
+      click_button "▲", exact: true
+    end
+
+    assert_button "logout"
+    assert_equal 0, @submission.submission_votes.count
+    assert_equal 1, @submission.reload.points
+    within "#submission_#{@submission.id}" do
+      assert_button "▲"
+    end
+  end
+
+  test "anonymous comment triangle opens login without casting a vote" do
+    visit submission_url(@submission)
+    within "#comment_#{@comment.id} .hn-vote-login-form" do
+      click_button "▲", exact: true
+    end
+
+    assert_button "logout"
+    assert_equal 0, @comment.comment_votes.count
+    assert_equal 1, @comment.reload.points
+  end
+
   test "votes and withdraws a submission vote through the browser" do
     visit "/auth/github/callback"
     visit root_url

@@ -217,7 +217,8 @@ body {
   cursor: pointer;
 }
 
-.hn-vote-form {
+.hn-vote-form,
+.hn-vote-login-form {
   display: inline;
   margin: 0;
 }

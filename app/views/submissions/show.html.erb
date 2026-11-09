@@ -1,4 +1,5 @@
 <% content_for :notice_displayed_in_page, "true" %>
+<% prepare_comment_votes(@comments, include_replies: true) %>
 <div class="submission-detail">
 <% if notice.present? %>
   <p class="submission-notice" role="status"><%= notice %></p>

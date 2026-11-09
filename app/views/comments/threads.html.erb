@@ -1,3 +1,4 @@
+<% prepare_comment_votes(@comments, include_replies: true) %>
 <section class="comments-section">
   <h2>Threads de <%= current_user.username %></h2>
   <% if @comments.empty? %>

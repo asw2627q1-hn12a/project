@@ -1,5 +1,5 @@
 <div id="<%= dom_id submission %>" class="submission-heading">
-  <% voted = current_user && submission.submission_votes.exists?(user_id: current_user.id) %>
+  <% voted = submission_voted?(submission) %>
   <% if current_user == submission.user %>
     <span class="submission-heading-marker" aria-hidden="true">*</span>
   <% elsif !voted %>

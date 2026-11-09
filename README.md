@@ -23,6 +23,8 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
   - Referència visual del triangle: [CSS original](https://news.ycombinator.com/news.css) i [SVG original](https://news.ycombinator.com/triangle.svg) de Hacker News; es mostra a 10 × 10 píxels amb els mateixos marges. El gràfic es conserva localment a `app/assets/images/hn-vote-triangle.svg`.
 - **Vote/unvote de comentaris**, també de respostes: mateix punt inicial i restriccions de propietat i unicitat que les submissions. Es mostren el triangle i `unvote` al fil, al detall, als comentaris recents i als threads. Els comentaris eliminats no admeten vots nous; els vots anteriors es conserven i es poden retirar.
   - Tant en submissions com en comentaris, votar o retirar el vot torna a la pàgina d'origen i conserva els paràmetres de cerca. Si el navegador no indica l'origen o apunta a un altre domini, es torna al detall de l'element.
+  - Els visitants anònims també veuen el triangle: obre el login amb GitHub mitjançant POST, sense registrar cap vot automàticament.
+  - L'estat dels vots es carrega per als elements del llistat o fil mostrat. El partial de submissions també el resol quan es reutilitza des d'altres llistats, sense dependre d'una acció concreta del controlador.
 - **Submissions** de dos tipus:
   - `url`: títol + URL (la URL ha de ser única; si ja existeix, es redirigeix a la submission original).
   - `ask`: títol + text, sense URL.

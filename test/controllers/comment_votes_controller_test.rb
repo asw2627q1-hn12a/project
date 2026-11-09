@@ -56,6 +56,16 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#comment_#{@comment.id} .comment-score", text: "1 punt"
     assert_select ".comment-vote-form", count: 0
+    assert_select "#comment_#{@comment.id} form.hn-vote-login-form[action='/auth/github'][method=post][data-turbo=false]" do
+      assert_select "button[aria-label='Log in to vote']"
+    end
+  end
+
+  test "anonymous readers cannot use a deleted comment as a login vote target" do
+    @comment.soft_delete!
+    get submission_url(@submission)
+
+    assert_select "#comment_#{@comment.id} .hn-vote-login-form", count: 0
   end
 
   test "own comments have no voting forms" do

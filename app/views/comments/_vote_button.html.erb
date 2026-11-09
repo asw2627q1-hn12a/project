@@ -1,7 +1,11 @@
-<%= button_to (voted ? "unvote" : "▲"),
-              submission_comment_vote_path(comment.submission_id, comment),
-              method: voted ? :delete : :post,
-              class: "hn-vote-button#{' hn-vote-button--arrow' unless voted}",
-              title: voted ? "unvote" : "upvote",
-              aria: { label: voted ? "unvote" : "vote" },
-              form: { class: "hn-vote-form comment-vote-form" } %>
+<% if !current_user %>
+  <%= render "shared/vote_login_button" %>
+<% else %>
+  <%= button_to (voted ? "unvote" : "▲"),
+                submission_comment_vote_path(comment.submission_id, comment),
+                method: voted ? :delete : :post,
+                class: "hn-vote-button#{' hn-vote-button--arrow' unless voted}",
+                title: voted ? "unvote" : "upvote",
+                aria: { label: voted ? "unvote" : "vote" },
+                form: { class: "hn-vote-form comment-vote-form" } %>
+<% end %>

@@ -54,6 +54,9 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "form[action=?]", submission_vote_path(@submission), count: 0
+    assert_select "#submission_#{@submission.id} form.hn-vote-login-form[action='/auth/github'][method=post][data-turbo=false]" do
+      assert_select "button[aria-label='Log in to vote']"
+    end
   end
 
   test "lists hide voting controls without a session" do
@@ -63,6 +66,16 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_select ".hn-vote-form", count: 0
     end
+  end
+
+  test "anonymous list triangles submit to login rather than creating votes" do
+    get root_url
+
+    assert_select "tr#submission_#{@submission.id} form.hn-vote-login-form[action='/auth/github'][method=post]" do
+      assert_select "button[aria-label='Log in to vote']"
+    end
+    assert_select "form[action=?]", submission_vote_path(@submission), count: 0
+    assert_equal 1, @submission.reload.points
   end
 
   test "lists show vote controls only for other users submissions" do
