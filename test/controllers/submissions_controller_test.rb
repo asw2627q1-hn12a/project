@@ -21,6 +21,36 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "newest lists submissions from newest to oldest" do
+    older = Submission.create!(
+      title: "Older submission",
+      url: "https://older.example.test",
+      user: users(:one),
+      created_at: 2.days.ago
+    )
+    newer = Submission.create!(
+      title: "Newer submission",
+      url: "https://newer.example.test",
+      user: users(:one),
+      created_at: 1.day.ago
+    )
+
+    get newest_url
+
+    assert_response :success
+    assert_select "tr.athing" do |rows|
+      expected_ids = Submission.order(created_at: :desc).map { |submission| "submission_#{submission.id}" }
+      assert_equal expected_ids, rows.map { |row| row["id"] }
+    end
+  end
+
+  test "new navigation link opens the newest page" do
+    get submissions_url
+
+    assert_response :success
+    assert_select ".hn-nav a[href=?]", newest_path, text: "new"
+  end
+
   test "search is accessible from the header without login" do
     get root_url
     assert_select "header form[action=?][method=get][role=search]", search_path do
@@ -235,24 +265,56 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
   test "should show submission" do
     get submission_url(@submission)
     assert_response :success
+    assert_select ".submission-heading-title > a[href=?]", @submission.url, text: @submission.title
+    assert_select ".submission-heading-domain a[href=?]", @submission.url, text: @submission.domain
+  end
+
+  test "submission heading does not render executable URLs from stored data" do
+    [ "javascript:alert(1)", "javascript://example.com/%0Aalert(1)", "data:text/html,<script>alert(1)</script>" ].each do |url|
+      @submission.update_columns(url: url)
+
+      get submission_url(@submission)
+
+      assert_response :success
+      assert_select ".submission-heading-title > a", text: @submission.title
+      assert_select ".submission-heading a[href^='javascript:']", count: 0
+      assert_select ".submission-heading a[href^='data:']", count: 0
+    end
   end
 
   test "should get edit" do
+    sign_in_as_owner
     get edit_submission_url(@submission)
     assert_response :success
+    assert_select "input[name='submission[title]'][value=?]", @submission.title
+    assert_select "input[name='submission[url]'][value=?]", @submission.url
+    assert_select "textarea[name='submission[text]']", text: @submission.text.to_s
+    assert_select "input[type=submit][value='update']"
+    assert_select ".submission-edit-page .hn-itemlist .titleline", text: /#{Regexp.escape(@submission.title)}/
   end
 
   test "should update submission" do
+    sign_in_as_owner
     patch submission_url(@submission), params: {
       submission: {
         title: "Updated submission",
-        url: "https://updated.example.test/submission"
+        url: "https://updated.example.test/submission",
+        text: "Updated text",
+        user_id: users(:two).id,
+        points: 999
       }
     }
     assert_redirected_to submission_url(@submission)
+    @submission.reload
+    assert_equal "Updated submission", @submission.title
+    assert_equal "https://updated.example.test/submission", @submission.url
+    assert_equal "Updated text", @submission.text
+    assert_equal users(:one), @submission.user
+    assert_equal 1, @submission.points
   end
 
   test "should destroy submission" do
+    sign_in_as_owner
     assert_difference("Submission.count", -1) do
       delete submission_url(@submission)
     end
@@ -260,7 +322,158 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to submissions_url
   end
 
+  test "anonymous users cannot edit update or destroy submissions" do
+    get edit_submission_url(@submission)
+    assert_redirected_to root_url
+
+    original_attributes = @submission.attributes
+    patch submission_url(@submission), params: { submission: { title: "Unauthorized" } }
+    assert_redirected_to root_url
+    assert_equal original_attributes, @submission.reload.attributes
+
+    assert_no_difference("Submission.count") { delete submission_url(@submission) }
+    assert_redirected_to root_url
+  end
+
+  test "other users cannot edit update or destroy submissions including JSON requests" do
+    sign_in
+    [ :html, :json ].each do |format|
+      get edit_submission_url(@submission, format: format)
+      assert_response :forbidden
+
+      original_attributes = @submission.attributes
+      patch submission_url(@submission, format: format), params: {
+        submission: { title: "Unauthorized", user_id: users(:two).id }
+      }
+      assert_response :forbidden
+      assert_equal original_attributes, @submission.reload.attributes
+
+      assert_no_difference("Submission.count") { delete submission_url(@submission, format: format) }
+      assert_response :forbidden
+    end
+  end
+
+  test "management controls are visible only to the author" do
+    get submission_url(@submission)
+    assert_select "a[href=?]", edit_submission_path(@submission), count: 0
+    assert_select "form[action=?] input[name=_method][value=delete]", submission_path(@submission), count: 0
+
+    sign_in
+    get submission_url(@submission)
+    assert_select "a[href=?]", edit_submission_path(@submission), count: 0
+    assert_select "form[action=?] input[name=_method][value=delete]", submission_path(@submission), count: 0
+
+    sign_in_as_owner
+    get submission_url(@submission)
+    assert_select "a[href=?]", edit_submission_path(@submission), count: 1
+    assert_select "form[action=?][data-turbo-confirm] input[name=_method][value=delete]", submission_path(@submission), count: 1
+    assert_select "p", text: "Deleting this submission permanently deletes all its comments and replies."
+  end
+
+  test "editing with the unchanged URL succeeds" do
+    sign_in_as_owner
+    patch submission_url(@submission), params: { submission: { title: "New title", url: @submission.url } }
+
+    assert_redirected_to submission_url(@submission)
+    assert_equal "New title", @submission.reload.title
+  end
+
+  test "list management controls are available only on own submissions across all lists" do
+    lists = [ root_url, newest_url, search_url(q: @submission.title) ]
+
+    lists.each do |url|
+      get url
+      assert_select ".subtext a[href=?]", edit_submission_path(@submission), count: 0
+      assert_select ".subtext .submission-delete-form", count: 0
+    end
+
+    sign_in_as_owner
+    lists.each do |url|
+      get url
+      assert_select ".subtext a[href=?]", edit_submission_path(@submission), text: "edit", count: 1
+      assert_select ".subtext form[action=?][data-turbo-confirm]", submission_path(@submission) do
+        assert_select "input[name=_method][value=delete]"
+        assert_select "button", text: "delete", count: 1
+      end
+      assert_select ".subtext a[href=?]", edit_submission_path(submissions(:two)), count: 0
+      assert_select ".subtext form[action=?]", submission_path(submissions(:two)), count: 0
+    end
+  end
+
+  test "invalid edit keeps entered fields and does not change the stored submission" do
+    sign_in_as_owner
+    original_attributes = @submission.attributes
+    patch submission_url(@submission), params: {
+      submission: { title: "", url: "https://", text: "Draft changes" }
+    }
+
+    assert_response :unprocessable_content
+    assert_select "input[name='submission[title]'][value='']"
+    assert_select "input[name='submission[url]'][value='https://']"
+    assert_select "textarea[name='submission[text]']", text: "Draft changes"
+    assert_select "li", text: /URL válida/
+    assert_equal original_attributes, @submission.reload.attributes
+  end
+
+  test "editing rejects another submission URL after trimming and ignoring case" do
+    sign_in_as_owner
+    original_attributes = @submission.attributes
+    duplicate_url = "  #{submissions(:two).url.upcase}  "
+    patch submission_url(@submission), params: {
+      submission: { title: "Changed title", url: duplicate_url, text: "Draft" }
+    }
+
+    assert_response :unprocessable_content
+    assert_select "input[name='submission[title]'][value='Changed title']"
+    assert_select "input[name='submission[url]'][value=?]", duplicate_url.strip
+    assert_select "li", text: /already been taken/
+    assert_equal original_attributes, @submission.reload.attributes
+  end
+
+  test "author can edit an Ask and change between Ask and URL submissions" do
+    sign_in_as_owner
+    patch submission_url(@submission), params: { submission: { url: "", text: "A question" } }
+    assert_redirected_to submission_url(@submission)
+    assert_equal "ask", @submission.reload.submission_type
+    assert_nil @submission.url
+
+    get edit_submission_url(@submission)
+    assert_response :success
+    assert_select "textarea[name='submission[text]']", text: "A question"
+
+    patch submission_url(@submission), params: { submission: { text: "Updated question" } }
+    assert_redirected_to submission_url(@submission)
+    assert_equal "Updated question", @submission.reload.text
+
+    patch submission_url(@submission), params: { submission: { url: "https://ask-edited.example.test" } }
+    assert_redirected_to submission_url(@submission)
+    assert_equal "url", @submission.reload.submission_type
+  end
+
+  test "deleting a submission removes all its comments replies and soft deleted comments only" do
+    sign_in_as_owner
+    parent = @submission.comments.create!(body: "Parent", user: users(:two))
+    reply = @submission.comments.create!(body: "Reply", parent: parent, user: users(:one))
+    @submission.comments.create!(body: "Nested reply", parent: reply, user: users(:two))
+    parent.soft_delete!
+    other_comment = submissions(:two).comments.create!(body: "Keep me", user: users(:two))
+
+    assert_difference({ "Submission.count" => -1, "Comment.count" => -3 }) do
+      delete submission_url(@submission)
+    end
+
+    assert_redirected_to submissions_url
+    assert_not Comment.exists?(submission_id: @submission.id)
+    assert_equal "Keep me", other_comment.reload.body
+  end
+
   private
+
+  def sign_in_as_owner
+    OmniAuth.config.mock_auth[:github].uid = "github-submission-owner"
+    users(:one).update!(provider: "github", uid: "github-submission-owner")
+    sign_in
+  end
 
   def sign_in
     get "/auth/github/callback"

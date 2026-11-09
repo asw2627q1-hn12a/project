@@ -170,7 +170,7 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
 
     get submission_url(@submission)
     assert_vote_form "unvote", deleting: true
-    assert_select "#submission_#{@submission.id}", text: /Points:\s*2/
+    assert_select "#submission_#{@submission.id} .score", text: "2 points"
 
     delete submission_vote_url(@submission)
     follow_redirect!
@@ -178,7 +178,7 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
 
     get submission_url(@submission)
     assert_vote_form "vote"
-    assert_select "#submission_#{@submission.id}", text: /Points:\s*1/
+    assert_select "#submission_#{@submission.id} .score", text: "1 point"
   end
 
   test "creates a vote as the logged in user and adds one point" do
@@ -193,7 +193,7 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
     assert_response :see_other
     assert_redirected_to submission_url(@submission)
     follow_redirect!
-    assert_select "#submission_#{@submission.id}", text: /Points:\s*2/
+    assert_select "#submission_#{@submission.id} .score", text: "2 points"
   end
 
   test "repeating a vote does not create a duplicate or add points" do
@@ -219,7 +219,7 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, @submission.reload.points
     assert_response :see_other
     follow_redirect!
-    assert_select "#submission_#{@submission.id}", text: /Points:\s*1/
+    assert_select "#submission_#{@submission.id} .score", text: "1 point"
   end
 
   test "repeating a withdrawal does not subtract another point" do

@@ -1,6 +1,8 @@
 class SubmissionsController < ApplicationController
+  before_action :require_login, only: %i[ edit update destroy ]
   before_action :set_submission, only: %i[ show edit update destroy ]
   before_action :require_login_for_submit, only: %i[new create]
+  before_action :authorize_submission, only: %i[ edit update destroy ]
 
   # GET /submissions or /news or /
   def index
@@ -119,6 +121,10 @@ class SubmissionsController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_submission
       @submission = Submission.find(params.expect(:id))
+    end
+
+    def authorize_submission
+      head :forbidden unless @submission.user == current_user
     end
 
     # Only allow a list of trusted parameters through.
