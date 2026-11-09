@@ -235,6 +235,21 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
   test "should show submission" do
     get submission_url(@submission)
     assert_response :success
+    assert_select ".submission-heading-title > a[href=?]", @submission.url, text: @submission.title
+    assert_select ".submission-heading-domain a[href=?]", @submission.url, text: @submission.domain
+  end
+
+  test "submission heading does not render executable URLs from stored data" do
+    [ "javascript:alert(1)", "javascript://example.com/%0Aalert(1)", "data:text/html,<script>alert(1)</script>" ].each do |url|
+      @submission.update_columns(url: url)
+
+      get submission_url(@submission)
+
+      assert_response :success
+      assert_select ".submission-heading-title > a", text: @submission.title
+      assert_select ".submission-heading a[href^='javascript:']", count: 0
+      assert_select ".submission-heading a[href^='data:']", count: 0
+    end
   end
 
   test "should get edit" do

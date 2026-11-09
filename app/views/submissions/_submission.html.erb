@@ -1,27 +1,21 @@
-<div id="<%= dom_id submission %>">
-  <p>
-    <strong>Title:</strong>
-    <%= submission.title %>
-  </p>
+<div id="<%= dom_id submission %>" class="submission-heading">
+  <span class="submission-heading-marker" aria-hidden="true"><%= current_user == submission.user ? "*" : "▴" %></span>
 
-  <p>
-    <strong>Url:</strong>
-    <%= submission.url %>
-  </p>
+  <div class="submission-heading-content">
+    <h1 class="submission-heading-title">
+      <%= sanitize(tag.a(submission.title, href: submission.url.presence || submission_path(submission)), tags: %w[a], attributes: %w[href]) %>
+      <% if submission.domain.present? %>
+        <span class="submission-heading-domain">(<%= sanitize(tag.a(submission.domain, href: submission.url), tags: %w[a], attributes: %w[href]) %>)</span>
+      <% end %>
+    </h1>
 
-  <p>
-    <strong>Points:</strong>
-    <%= submission.points %>
-  </p>
-
-  <p>
-    <strong>Submission type:</strong>
-    <%= submission.submission_type %>
-  </p>
-
-  <p>
-    <strong>User:</strong>
-    <%= submission.user_id %>
-  </p>
-
+    <p class="submission-heading-meta">
+      <%= pluralize(submission.points, "point") %>
+      by <%= link_to submission.user.username, user_path(submission.user) %>
+      <%= link_to submission_path(submission) do %>
+        <time datetime="<%= submission.created_at.iso8601 %>"><%= time_ago_in_words(submission.created_at) %> ago</time>
+      <% end %>
+      | <%= link_to pluralize(submission.comments.count, "comment"), submission_path(submission, anchor: "comments") %>
+    </p>
+  </div>
 </div>
