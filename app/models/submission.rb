@@ -2,6 +2,7 @@ require "uri"
 
 class Submission < ApplicationRecord
   belongs_to :user
+  has_many :submission_votes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :submission_hides, dependent: :destroy
 

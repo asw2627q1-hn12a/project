@@ -146,6 +146,50 @@ class SubmissionHidesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#submission_#{@submission.id}"
   end
 
+  test "hidden list preserves vote state and allows voting and withdrawing without unhiding" do
+    sign_in
+    post submission_hide_url(@submission)
+    get hidden_submissions_url
+    assert_select "tr#submission_#{@submission.id} button[aria-label=vote]"
+
+    post submission_vote_url(@submission), headers: { "HTTP_REFERER" => hidden_submissions_url }
+    assert_redirected_to hidden_submissions_url
+    follow_redirect!
+    assert_select "tr#submission_#{@submission.id} + tr .score", text: "2 points"
+    assert_select "form[action=?] button", submission_vote_path(@submission), text: "unvote"
+    assert_select "form[action=?] button", submission_hide_path(@submission), text: "unhide"
+    assert @user.submission_hides.exists?(submission: @submission)
+
+    get hidden_submissions_url
+    assert_select "form[action=?] input[name=_method][value=delete]", submission_vote_path(@submission)
+    delete submission_vote_url(@submission), headers: { "HTTP_REFERER" => hidden_submissions_url }
+    assert_redirected_to hidden_submissions_url
+    follow_redirect!
+    assert_select "tr#submission_#{@submission.id} + tr .score", text: "1 points"
+    assert_select "tr#submission_#{@submission.id} button[aria-label=vote]"
+    assert @user.submission_hides.exists?(submission: @submission)
+  end
+
+  test "hide and unhide preserve existing submission and comment votes" do
+    comment = @submission.comments.create!(user: users(:one), body: "Keep my vote")
+    SubmissionVote.create!(user: @user, submission: @submission)
+    CommentVote.create!(user: @user, comment: comment)
+    sign_in
+
+    assert_no_difference [ "SubmissionVote.count", "CommentVote.count", "Comment.count" ] do
+      post submission_hide_url(@submission)
+      get submission_url(@submission)
+      assert_response :success
+      assert_select "#submission_#{@submission.id} .score", text: "2 points"
+      assert_select "#comment_#{comment.id} .comment-score", text: "2 punts"
+      delete submission_hide_url(@submission)
+    end
+    get news_url
+    assert_select "form[action=?] button", submission_vote_path(@submission), text: "unvote"
+    assert_equal 2, @submission.reload.points
+    assert_equal 2, comment.reload.points
+  end
+
   test "forms show persisted hide state and use POST and DELETE" do
     get news_url
     assert_select "form.submission-hide-form", count: 0

@@ -65,10 +65,48 @@ class SubmissionHidesTest < ApplicationSystemTestCase
     end
     assert_no_selector "tr#submission_#{@submission.id}"
     click_button "logout", exact: true
+    within "#login" do
+      assert_button "login", exact: true
+      assert_no_button "logout", exact: true
+    end
 
     visit news_url
     assert_selector "tr#submission_#{@submission.id}"
     assert_no_selector "form.submission-hide-form"
+  end
+
+  test "voting and withdrawing from hidden keep the submission hidden until unhide" do
+    sign_in
+    visit news_url
+    within "form[action='#{submission_hide_path(@submission)}']" do
+      click_button "hide", exact: true
+    end
+    assert_no_selector "tr#submission_#{@submission.id}"
+    visit hidden_submissions_url
+
+    within "#submission_#{@submission.id}" do
+      click_button "▲", exact: true
+    end
+    assert_current_path hidden_submissions_path
+    within "#submission_#{@submission.id} + tr" do
+      assert_text "2 points"
+      assert_button "unhide", exact: true
+    end
+
+    visit hidden_submissions_url
+    within "#submission_#{@submission.id} + tr" do
+      click_button "unvote", exact: true
+    end
+    assert_current_path hidden_submissions_path
+    within "#submission_#{@submission.id} + tr" do
+      assert_text "1 points"
+      click_button "unhide", exact: true
+    end
+    assert_current_path hidden_submissions_path
+    assert_text "No hidden submissions."
+    visit news_url
+    assert_selector "#submission_#{@submission.id} button[aria-label=vote]"
+    assert_equal 1, @submission.reload.points
   end
 
   private

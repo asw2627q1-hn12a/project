@@ -24,7 +24,10 @@ Rails.application.routes.draw do
 
   resources :submissions do
     resource :hide, only: %i[create destroy], controller: "submission_hides"
-    resources :comments, only: %i[ show new create edit update destroy ]
+    resource :vote, only: %i[ create destroy ], controller: "submission_votes"
+    resources :comments, only: %i[ show new create edit update destroy ] do
+      resource :vote, only: %i[ create destroy ], controller: "comment_votes"
+    end
   end
   resources :users, except: %i[ new create ]
 

@@ -1,4 +1,5 @@
 <!-- Fila 1: Ranking, flecha de voto, título y dominio -->
+<% voted = submission_voted?(submission) %>
 <tr class="athing" id="submission_<%= submission.id %>">
   <td align="right" valign="top" class="title">
     <% if local_assigns[:submission_counter] %>
@@ -6,10 +7,10 @@
     <% end %>
   </td>
   <td valign="top" class="votelinks">
-    <% if action_name == "edit" || action_name == "update" %>
+    <% if current_user == submission.user %>
       <span class="submission-owner-marker" aria-label="Your submission">*</span>
-    <% else %>
-      <span class="votearrow" title="upvote">&#9650;</span>
+    <% elsif !voted %>
+      <%= render "submissions/vote_button", submission: submission, voted: false %>
     <% end %>
   </td>
   <td class="title">
@@ -37,6 +38,9 @@
     <span class="age">
       <a href="<%= submission_path(submission) %>"><%= time_ago_in_words(submission.created_at) %> ago</a>
     </span>
+    <% if voted %>
+      | <%= render "submissions/vote_button", submission: submission, voted: true %>
+    <% end %>
     | <a href="<%= submission_path(submission) %>">discuss</a>
     <% if current_user %>
       | <%= render "submissions/hide_button", submission: submission, hidden: local_assigns.fetch(:hidden, false) %>

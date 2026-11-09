@@ -1,6 +1,17 @@
 require "test_helper"
 
 class CommentTest < ActiveSupport::TestCase
+  test "requires points to be a nonnegative integer" do
+    comment = Comment.new(submission: submissions(:one), user: users(:one), body: "Comentari")
+
+    [ nil, -1, 1.5 ].each do |points|
+      comment.points = points
+
+      assert_not comment.valid?
+      assert comment.errors[:points].present?
+    end
+  end
+
   test "accepts a reply to a comment on the same submission" do
     parent = Comment.create!(submission: submissions(:one), user: users(:one), body: "Comentari pare")
     reply = Comment.new(submission: submissions(:one), user: users(:two), body: "Resposta", parent: parent)
