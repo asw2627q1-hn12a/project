@@ -4,7 +4,7 @@ class SubmissionHidesController < ApplicationController
 
   def index
     @submissions = current_user.hidden_submissions.with_comments_count.includes(:user).by_relevance
-    end
+  end
 
   def create
     @submission.with_lock do
