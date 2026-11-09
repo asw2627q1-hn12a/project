@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   MAX_OAUTH_CREATE_ATTEMPTS = 3
 
+  has_many :submission_hides, dependent: :destroy
+  has_many :hidden_submissions, through: :submission_hides, source: :submission
   has_many :submissions, dependent: :destroy
   has_many :comments, dependent: :destroy
 
