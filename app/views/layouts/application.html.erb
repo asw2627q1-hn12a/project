@@ -7,6 +7,7 @@
     <%= csp_meta_tag %>
 
     <%= stylesheet_link_tag "application" %>
+    <%= javascript_importmap_tags %>
   </head>
 
   <body>
@@ -17,10 +18,10 @@
           <a href="<%= root_path %>" class="hn-logo">Y</a>
           <a href="<%= news_path %>" class="hn-brand">Hacker News</a>
           <nav class="hn-nav">
-            <a href="<%= news_path %>">new</a> |
+            <a href="<%= newest_path %>">new</a> |
             <a href="#">past</a> |
             <a href="<%= comments_path %>">comentaris</a> |
-            <a href="#">ask</a> |
+            <a href="<%= ask_path %>">ask</a> |
             <a href="#">show</a> |
             <a href="<%= submit_path %>">submit</a> |
           </nav>

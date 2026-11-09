@@ -123,6 +123,27 @@ body {
   margin: 8px 0 0 34px;
 }
 
+.submission-edit-page {
+  padding: 4px 0 16px;
+}
+
+.submission-edit-page .submission-form {
+  margin-top: 24px;
+}
+
+.submission-edit-page .submission-form-field {
+  grid-template-columns: 30px minmax(0, 490px);
+}
+
+.submission-edit-page .submission-form-actions {
+  margin: 22px 0 0;
+}
+
+.submission-owner-marker {
+  padding: 0 4px;
+  color: #ff6600;
+}
+
 .submit-help {
   color: #828282;
   font-size: 9pt;
@@ -230,6 +251,168 @@ body {
 
 .subtext a:hover {
   text-decoration: underline;
+}
+
+.submission-delete-form {
+  display: inline;
+  margin: 0;
+}
+
+.submission-delete-button {
+  border: 0;
+  padding: 0;
+  color: #828282;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.submission-delete-button:hover {
+  text-decoration: underline;
+}
+
+/* Submission detail heading */
+.submission-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 4px 10px 14px;
+}
+
+.submission-heading-marker {
+  flex: none;
+  color: #ff6600;
+}
+
+.submission-heading-content {
+  min-width: 0;
+}
+
+.submission-heading-title {
+  margin: 0;
+  font-size: 10pt;
+  font-weight: normal;
+  overflow-wrap: anywhere;
+}
+
+.submission-heading-title a {
+  color: #000000;
+  text-decoration: none;
+}
+
+.submission-heading-domain,
+.submission-heading-domain a {
+  color: #828282;
+  font-size: 8pt;
+}
+
+.submission-heading-meta {
+  margin: 4px 0 0;
+  color: #828282;
+  font-size: 7pt;
+  line-height: 1.5;
+}
+
+.submission-heading-meta a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.submission-heading a:hover {
+  text-decoration: underline;
+}
+
+.submission-detail {
+  max-width: calc(100vw - 32px);
+}
+
+.submission-detail .submission-heading {
+  margin-bottom: 6px;
+}
+
+.submission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 10px 24px 22px;
+  font-size: 8pt;
+}
+
+.submission-actions form {
+  margin: 0;
+}
+
+.submission-actions a,
+.submission-actions button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #666666;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.submission-actions a:hover,
+.submission-actions button:hover {
+  color: #000000;
+  text-decoration: none;
+}
+
+.submission-actions form {
+  padding-left: 12px;
+  border-left: 1px solid #cecec6;
+}
+
+.submission-back-nav {
+  margin: 0 22px 16px;
+  font-size: 8pt;
+}
+
+.submission-back-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #666666;
+  text-decoration: none;
+}
+
+.submission-back-nav a:hover {
+  color: #000000;
+}
+
+.submission-actions button {
+  color: #9b3a32;
+}
+
+.submission-actions button:hover {
+  color: #75251e;
+}
+
+.submission-detail .comments-section {
+  margin: 0 22px 24px;
+}
+
+.submission-detail .comment-current-user {
+  display: none;
+}
+
+.submission-detail .comment-form {
+  margin: 0 0 28px;
+}
+
+.submission-detail .comment-form label {
+  color: #666666;
+}
+
+.submission-detail .comment-form textarea {
+  max-width: 100%;
+}
+
+.submission-notice {
+  margin: 4px 22px 12px;
+  color: #357035;
 }
 
 /* Footer */
@@ -404,6 +587,18 @@ body {
   margin: 5px 0 0 13px;
   color: #828282;
   font-size: 8pt;
+}
+
+@media (max-width: 800px) {
+  .hn-container {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .hn-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
 
 @media (max-width: 600px) {

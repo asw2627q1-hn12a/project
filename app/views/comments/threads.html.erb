@@ -1,0 +1,14 @@
+<section class="comments-section">
+  <h2>Threads de <%= current_user.username %></h2>
+  <% if @comments.empty? %>
+    <p>Encara no has escrit cap comentari.</p>
+  <% else %>
+    <% @comments.each do |comment| %>
+      <p class="comment-submission">
+        A <%= link_to comment.submission.title, submission_path(comment.submission, anchor: "comments") %>
+        · <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+      </p>
+      <%= render "comments/comment", comment: comment, submission: comment.submission %>
+    <% end %>
+  <% end %>
+</section>

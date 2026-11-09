@@ -1,6 +1,6 @@
 class CommentsController < ApplicationController
   before_action :set_submission, only: %i[ show new create edit update destroy ]
-  before_action :require_login, only: %i[ create edit update destroy ]
+  before_action :require_login, only: %i[ create edit update destroy threads ]
   before_action :set_comment, only: %i[ show edit update destroy ]
   before_action :authorize_comment, only: %i[ edit update destroy ]
 
@@ -75,6 +75,18 @@ class CommentsController < ApplicationController
     end
   end
 
+  def threads
+    comments = current_user.comments
+                 .where(deleted_at: nil)
+                 .includes(:submission, :user, replies: :user)
+                 .order(created_at: :desc)
+    own_ids = comments.map(&:id).to_set
+    # Mapa id => parent_id de tots els comentaris de les submissions afectades (una sola consulta)
+    parent_ids = Comment.where(submission_id: comments.map(&:submission_id).uniq).pluck(:id, :parent_id).to_h
+    # Evita repetir un comentari que ja surt dins del fil d'un comentari propi (a qualsevol nivell)
+    @comments = comments.reject { |comment| own_ancestor?(comment, own_ids, parent_ids) }
+  end
+
   private
     def set_submission
       @submission = Submission.find(params.expect(:submission_id))
@@ -96,5 +108,15 @@ class CommentsController < ApplicationController
       return if @comment.user == current_user && !@comment.deleted?
 
       head :forbidden
+    end
+
+    def own_ancestor?(comment, own_ids, parent_ids)
+      ancestor_id = comment.parent_id
+      while ancestor_id
+        return true if own_ids.include?(ancestor_id)
+
+        ancestor_id = parent_ids[ancestor_id]
+      end
+      false
     end
 end
