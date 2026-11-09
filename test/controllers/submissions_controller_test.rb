@@ -21,6 +21,36 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "newest lists submissions from newest to oldest" do
+    older = Submission.create!(
+      title: "Older submission",
+      url: "https://older.example.test",
+      user: users(:one),
+      created_at: 2.days.ago
+    )
+    newer = Submission.create!(
+      title: "Newer submission",
+      url: "https://newer.example.test",
+      user: users(:one),
+      created_at: 1.day.ago
+    )
+
+    get newest_url
+
+    assert_response :success
+    assert_select "tr.athing" do |rows|
+      expected_ids = Submission.order(created_at: :desc).map { |submission| "submission_#{submission.id}" }
+      assert_equal expected_ids, rows.map { |row| row["id"] }
+    end
+  end
+
+  test "new navigation link opens the newest page" do
+    get submissions_url
+
+    assert_response :success
+    assert_select ".hn-nav a[href=?]", newest_path, text: "new"
+  end
+
   test "search is accessible from the header without login" do
     get root_url
     assert_select "header form[action=?][method=get][role=search]", search_path do
