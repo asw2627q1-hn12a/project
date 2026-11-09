@@ -18,6 +18,138 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
     OmniAuth.config.mock_auth.clear
   end
 
+  test "submission detail hides voting controls without a session" do
+    get submission_url(@submission)
+
+    assert_response :success
+    assert_select "form[action=?]", submission_vote_path(@submission), count: 0
+  end
+
+  test "lists hide voting controls without a session" do
+    [ root_url, newest_url, search_url(q: "MyString"), ask_url ].each do |url|
+      get url
+
+      assert_response :success
+      assert_select ".hn-vote-form", count: 0
+    end
+  end
+
+  test "lists show vote controls only for other users submissions" do
+    sign_in
+    own_submission = submissions(:two)
+
+    [ root_url, newest_url, search_url(q: "MyString") ].each do |url|
+      get url
+
+      assert_vote_form "vote"
+      assert_select "form[action=?]", submission_vote_path(own_submission), count: 0
+    end
+  end
+
+  test "list uses an upvote triangle and places unvote beside the metadata" do
+    sign_in
+    get root_url
+
+    assert_select "tr#submission_#{@submission.id} .votelinks button[aria-label=vote]", text: "▲"
+    assert_select "tr#submission_#{@submission.id} + tr .subtext button[aria-label=unvote]", count: 0
+
+    post submission_vote_url(@submission)
+    get root_url
+
+    assert_select "tr#submission_#{@submission.id} .votelinks button", count: 0
+    assert_select "tr#submission_#{@submission.id} + tr .subtext button[aria-label=unvote]", text: "unvote"
+  end
+
+  test "Ask list supports voting and withdrawing" do
+    sign_in
+    @submission = Submission.create!(title: "Voting Ask", user: users(:one))
+
+    get ask_url
+    assert_vote_form "vote"
+
+    post submission_vote_url(@submission)
+    get ask_url
+    assert_vote_form "unvote", deleting: true
+
+    delete submission_vote_url(@submission)
+    get ask_url
+    assert_vote_form "vote"
+  end
+
+  test "lists reflect votes after reload and agree with the detail" do
+    sign_in
+    post submission_vote_url(@submission)
+
+    [ root_url, newest_url, search_url(q: "MyString") ].each do |url|
+      get url
+      assert_vote_form "unvote", deleting: true
+      assert_select "tr#submission_#{@submission.id} + tr .score", text: "2 points"
+    end
+
+    delete submission_vote_url(@submission)
+
+    [ root_url, newest_url, search_url(q: "MyString") ].each do |url|
+      get url
+      assert_vote_form "vote"
+      assert_select "tr#submission_#{@submission.id} + tr .score", text: "1 points"
+    end
+
+    get submission_url(@submission)
+    assert_vote_form "vote"
+  end
+
+  test "loads vote states in one query for the entire list" do
+    sign_in
+    4.times do |index|
+      Submission.create!(title: "Voting link #{index}", url: "https://voting.example/#{index}", user: users(:one))
+    end
+    SubmissionVote.create!(user: @voter, submission: @submission)
+    vote_queries = []
+    subscriber = lambda do |_name, _start, _finish, _id, payload|
+      vote_queries << payload[:sql] if payload[:sql].match?(/FROM ["`]?submission_votes/i)
+    end
+
+    ActiveSupport::Notifications.subscribed(subscriber, "sql.active_record") do
+      get root_url
+    end
+
+    assert_response :success
+    assert_select ".hn-vote-form", count: 5
+    assert_equal 1, vote_queries.size
+  end
+
+  test "submission detail hides voting controls on own submissions" do
+    sign_in
+    own_submission = submissions(:two)
+
+    get submission_url(own_submission)
+
+    assert_response :success
+    assert_select "form[action=?]", submission_vote_path(own_submission), count: 0
+  end
+
+  test "submission detail keeps the vote button and points correct after reload" do
+    sign_in
+    get submission_url(@submission)
+    assert_vote_form "vote"
+
+    post submission_vote_url(@submission)
+    follow_redirect!
+    assert_vote_form "unvote", deleting: true
+
+    get submission_url(@submission)
+    assert_vote_form "unvote", deleting: true
+    assert_select "#submission_#{@submission.id}", text: /Points:\s*2/
+
+    delete submission_vote_url(@submission)
+    follow_redirect!
+    assert_vote_form "vote"
+
+    get submission_url(@submission)
+    assert_vote_form "vote"
+    assert_select "#submission_#{@submission.id}", text: /Points:\s*1/
+  end
+
   test "creates a vote as the logged in user and adds one point" do
     sign_in
 
@@ -164,6 +296,15 @@ class SubmissionVotesControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def assert_vote_form(label, deleting: false)
+    assert_response :success
+    assert_select "form[action=?][method=post]", submission_vote_path(@submission), count: 1 do
+      assert_select "button[type=submit][aria-label=?]", label, count: 1
+      assert_select "input[name=_method][value=delete]", count: deleting ? 1 : 0
+      assert_select "input[name=user_id]", count: 0
+    end
+  end
 
   def sign_in
     get "/auth/github/callback"

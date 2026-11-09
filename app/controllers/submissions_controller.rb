@@ -5,6 +5,7 @@ class SubmissionsController < ApplicationController
   # GET /submissions or /news or /
   def index
     @submissions = Submission.where(submission_type: "url").includes(:user).by_relevance
+    set_voted_submission_ids
   end
 
   # GET /search
@@ -15,6 +16,7 @@ class SubmissionsController < ApplicationController
     else
       Submission.none
     end
+    set_voted_submission_ids
     render :index
   end
 
@@ -32,6 +34,7 @@ class SubmissionsController < ApplicationController
   # GET /newest
   def newest
     @submissions = Submission.includes(:user).order(created_at: :desc)
+    set_voted_submission_ids
     render :index
   end
 
@@ -42,6 +45,7 @@ class SubmissionsController < ApplicationController
   # GET /ask
   def ask
     @submissions = Submission.where(submission_type: "ask").includes(:user).by_relevance
+    set_voted_submission_ids
     render :index
   end
 
@@ -96,6 +100,16 @@ class SubmissionsController < ApplicationController
   end
 
   private
+    def set_voted_submission_ids
+      @voted_submission_ids = if current_user
+        current_user.submission_votes
+                    .where(submission_id: @submissions.select(:id))
+                    .pluck(:submission_id).to_set
+      else
+        Set.new
+      end
+    end
+
     def require_login_for_submit
       return if current_user
 

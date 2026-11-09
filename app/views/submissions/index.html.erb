@@ -27,7 +27,9 @@
           <span class="rank"><%= index + 1 %>.</span>
         </td>
         <td valign="top" class="votelinks">
-          <span class="votearrow" title="upvote">&#9650;</span>
+          <% unless @voted_submission_ids.include?(submission.id) %>
+            <%= render "submissions/vote_button", submission: submission, voted: false %>
+          <% end %>
         </td>
         <td class="title">
           <span class="titleline">
@@ -54,6 +56,9 @@
           <span class="age">
             <a href="<%= submission_path(submission) %>"><%= time_ago_in_words(submission.created_at) %> ago</a>
           </span>
+          <% if @voted_submission_ids.include?(submission.id) %>
+            | <%= render "submissions/vote_button", submission: submission, voted: true %>
+          <% end %>
           | <a href="<%= submission_path(submission) %>">discuss</a>
         </td>
       </tr>
