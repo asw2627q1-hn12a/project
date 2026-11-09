@@ -33,6 +33,11 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 - **`/search`**: cerca pel títol des de la barra superior, sense distingir majúscules i minúscules; inclou URL i Ask, ordenades per punts i, en cas d’empat, per data més recent, com a la portada.
 - **Gestió de submissions pròpies**: només l'autor autenticat pot editar o eliminar una submission. L'edició carrega les dades actuals i valida el títol, el format HTTP/HTTPS i les URL duplicades. Eliminar una submission elimina definitivament tots els seus comentaris i respostes, inclosos els comentaris marcats com a eliminats; es demana confirmació abans d'enviar l'eliminació.
 - **Perfil d'usuari** (`/users/:id`) amb avatar i banner.
+- **Hide/unhide de submissions (Taiga #28)**: els usuaris autenticats poden amagar submissions, incloses les pròpies. L'ocultació és personal i persistent: les exclou de `/`, `/news`, `/submissions`, `/newest`, `/ask` i `/search` només per a aquell usuari. No elimina contingut ni canvia punts o comentaris; el detall continua accessible per URL.
+  - El nom d'usuari de la capçalera obre el perfil; l'enllaç `hidden` del perfil propi porta a `/hidden`, una llista privada amb l'acció `unhide`. També es pot retirar l'ocultació des del detall.
+  - La llista `hidden` també permet votar i retirar el vot de submissions alienes sense recuperar-les. Amagar o recuperar una submission conserva els vots i els punts, tant de la submission com dels seus comentaris.
+  - `hide` envia un POST i `unhide` un DELETE a `/submissions/:submission_id/hide`, amb formularis de Rails i protecció CSRF, sense afegir JavaScript. Es torna a la pàgina d'origen, o a la portada si no hi ha un origen local vàlid.
+  - L'usuari s'obté de la sessió. Un índex únic sobre `user_id` i `submission_id` evita duplicats; repetir hide/unhide no canvia el resultat. Només es pot retirar l'ocultació pròpia.
 
 ## Stack
 

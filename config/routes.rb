@@ -20,8 +20,10 @@ Rails.application.routes.draw do
   get "/newcomments", to: "comments#index", as: :comments
   get "/threads", to: "comments#threads", as: :threads
   get "/ask", to: "submissions#ask", as: :ask
+  get "/hidden", to: "submission_hides#index", as: :hidden_submissions
 
   resources :submissions do
+    resource :hide, only: %i[create destroy], controller: "submission_hides"
     resource :vote, only: %i[ create destroy ], controller: "submission_votes"
     resources :comments, only: %i[ show new create edit update destroy ] do
       resource :vote, only: %i[ create destroy ], controller: "comment_votes"

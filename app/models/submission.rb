@@ -4,7 +4,11 @@ class Submission < ApplicationRecord
   belongs_to :user
   has_many :submission_votes, dependent: :destroy
   has_many :comments, dependent: :destroy
+  has_many :submission_hides, dependent: :destroy
 
+  scope :visible_to, ->(user) {
+    user ? where.not(id: user.submission_hides.select(:submission_id)) : all
+  }
   scope :by_relevance, -> { order(points: :desc, created_at: :desc) }
   scope :with_title_containing, ->(query) {
     where("LOWER(title) LIKE ? ESCAPE '!'", "%#{sanitize_sql_like(query.downcase, "!")}%")

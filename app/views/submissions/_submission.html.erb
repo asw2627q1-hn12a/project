@@ -24,6 +24,10 @@
         | <%= render "submissions/vote_button", submission: submission, voted: true %>
       <% end %>
       | <%= link_to pluralize(submission.comments.count, "comment"), submission_path(submission, anchor: "comments") %>
+      <% if current_user %>
+        | <%= render "submissions/hide_button", submission: submission,
+                     hidden: current_user.submission_hides.exists?(submission: submission) %>
+      <% end %>
     </div>
   </div>
 </div>
