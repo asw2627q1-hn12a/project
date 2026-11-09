@@ -1,0 +1,4 @@
+<%= button_to "▲", "/auth/github", method: :post,
+              class: "hn-vote-button hn-vote-button--arrow", title: "upvote",
+              aria: { label: "Log in to vote" },
+              form: { class: "hn-vote-login-form", data: { turbo: false } } %>

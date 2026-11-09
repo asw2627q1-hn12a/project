@@ -6,14 +6,14 @@ class SubmissionsController < ApplicationController
 
   # GET /submissions or /news or /
   def index
-    @submissions = Submission.with_comments_count.includes(:user).by_relevance
+    @submissions = Submission.visible_to(current_user).where(submission_type: "url").includes(:user).by_relevance
   end
 
   # GET /search
   def search
     @query = params[:q].to_s.strip
     @submissions = if @query.present?
-      Submission.with_title_containing(@query).with_comments_count.includes(:user).by_relevance
+      Submission.visible_to(current_user).with_title_containing(@query).includes(:user).by_relevance
     else
       Submission.none
     end
@@ -33,7 +33,7 @@ class SubmissionsController < ApplicationController
 
   # GET /newest
   def newest
-    @submissions = Submission.with_comments_count.includes(:user).order(created_at: :desc)
+    @submissions = Submission.visible_to(current_user).includes(:user).order(created_at: :desc)
     render :index
   end
 
@@ -43,7 +43,7 @@ class SubmissionsController < ApplicationController
 
   # GET /ask
   def ask
-    @submissions = Submission.where(submission_type: "ask").with_comments_count.includes(:user).by_relevance
+    @submissions = Submission.visible_to(current_user).where(submission_type: "ask").includes(:user).by_relevance
     render :index
   end
 

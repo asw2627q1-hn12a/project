@@ -217,6 +217,44 @@ body {
   cursor: pointer;
 }
 
+.hn-vote-form,
+.hn-vote-login-form {
+  display: inline;
+  margin: 0;
+}
+
+.hn-vote-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #828282;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hn-vote-button--arrow {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 3px 2px 6px;
+  font-size: 0;
+  background: url("hn-vote-triangle.svg") no-repeat;
+  background-size: 10px;
+}
+
+.hn-vote-button:hover {
+  text-decoration: underline;
+}
+
+.hn-vote-button--arrow:hover {
+  text-decoration: none;
+}
+
+.hn-vote-button:focus-visible {
+  outline: 1px solid #ff6600;
+  outline-offset: 2px;
+}
+
 .titleline a {
   color: #000000;
   text-decoration: none;
@@ -253,12 +291,14 @@ body {
   text-decoration: underline;
 }
 
-.submission-delete-form {
+.submission-delete-form,
+.submission-hide-form {
   display: inline;
   margin: 0;
 }
 
-.submission-delete-button {
+.submission-delete-button,
+.submission-hide-button {
   border: 0;
   padding: 0;
   color: #828282;
@@ -267,8 +307,16 @@ body {
   cursor: pointer;
 }
 
-.submission-delete-button:hover {
+.submission-delete-button:hover,
+.submission-hide-button:hover {
   text-decoration: underline;
+}
+
+.hn-list-heading {
+  margin: 0 10px 12px;
+  font-size: 10pt;
+  font-weight: normal;
+  color: #828282;
 }
 
 /* Submission detail heading */

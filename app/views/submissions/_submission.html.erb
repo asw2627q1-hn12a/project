@@ -1,5 +1,10 @@
 <div id="<%= dom_id submission %>" class="submission-heading">
-  <span class="submission-heading-marker" aria-hidden="true"><%= current_user == submission.user ? "*" : "▴" %></span>
+  <% voted = submission_voted?(submission) %>
+  <% if current_user == submission.user %>
+    <span class="submission-heading-marker" aria-hidden="true">*</span>
+  <% elsif !voted %>
+    <%= render "submissions/vote_button", submission: submission, voted: false %>
+  <% end %>
 
   <div class="submission-heading-content">
     <h1 class="submission-heading-title">
@@ -9,13 +14,20 @@
       <% end %>
     </h1>
 
-    <p class="submission-heading-meta">
-      <%= pluralize(submission.points, "point") %>
+    <div class="submission-heading-meta">
+      <span class="score"><%= pluralize(submission.points, "point") %></span>
       by <%= link_to submission.user.username, user_path(submission.user) %>
       <%= link_to submission_path(submission) do %>
         <time datetime="<%= submission.created_at.iso8601 %>"><%= time_ago_in_words(submission.created_at) %> ago</time>
       <% end %>
+      <% if voted %>
+        | <%= render "submissions/vote_button", submission: submission, voted: true %>
+      <% end %>
       | <%= link_to pluralize(submission.comments.count, "comment"), submission_path(submission, anchor: "comments") %>
-    </p>
+      <% if current_user %>
+        | <%= render "submissions/hide_button", submission: submission,
+                     hidden: current_user.submission_hides.exists?(submission: submission) %>
+      <% end %>
+    </div>
   </div>
 </div>

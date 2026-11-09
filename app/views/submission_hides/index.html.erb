@@ -1,0 +1,11 @@
+<h1 class="hn-list-heading">Hidden submissions</h1>
+
+<% if @submissions.empty? %>
+  <p role="status">No hidden submissions.</p>
+<% else %>
+  <table class="hn-itemlist" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <%= render partial: "submissions/list_item", collection: @submissions, as: :submission, locals: { hidden: true } %>
+    </tbody>
+  </table>
+<% end %>
