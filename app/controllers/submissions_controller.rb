@@ -41,6 +41,12 @@ class SubmissionsController < ApplicationController
   def edit
   end
 
+  # GET /ask
+  def ask
+    @submissions = Submission.where(submission_type: "ask").includes(:user).by_relevance
+    render :index
+  end
+
   # POST /submissions
   def create
     @submission = Submission.new(submission_params)

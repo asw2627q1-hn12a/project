@@ -77,7 +77,7 @@ class SubmissionsTest < ApplicationSystemTestCase
     visit submission_url(@submission)
 
     dismiss_confirm do
-      click_on "Destroy this submission", match: :first
+      click_on "Delete", exact: true
     end
 
     assert_current_path submission_path(@submission)
