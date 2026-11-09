@@ -3,8 +3,8 @@ class SubmissionHidesController < ApplicationController
   before_action :set_submission, only: %i[create destroy]
 
   def index
-    @submissions = current_user.hidden_submissions.includes(:user).by_relevance
-  end
+    @submissions = current_user.hidden_submissions.with_comments_count.includes(:user).by_relevance
+    end
 
   def create
     @submission.with_lock do
