@@ -26,6 +26,6 @@
   </div>
 
   <div class="submission-form-actions">
-    <%= form.submit "submit" %>
+    <%= form.submit(submission.persisted? ? "update" : "submit") %>
   </div>
 <% end %>

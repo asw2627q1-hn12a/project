@@ -15,10 +15,14 @@
 
 <%= render @submission %>
 
+<% if current_user == @submission.user %>
 <nav class="submission-actions" aria-label="Submission actions">
   <%= link_to "Edit", edit_submission_path(@submission) %>
-  <%= button_to "Delete", @submission, method: :delete %>
+  <%= button_to "Delete", @submission, method: :delete,
+                form: { data: { turbo_confirm: "Delete this submission and all its comments and replies? This cannot be undone." } } %>
 </nav>
+<p class="submission-back-nav">Deleting this submission permanently deletes all its comments and replies.</p>
+<% end %>
 
 <section id="comments" class="comments-section" aria-label="Comentaris">
   <% if current_user %>

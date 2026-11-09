@@ -9,7 +9,7 @@ one:
 
 two:
   title: MyString
-  url: https://example.com
+  url: https://example.org
   points: 1
   submission_type: url
   user: two
