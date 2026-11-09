@@ -146,6 +146,53 @@ class SubmissionHidesControllerTest < ActionDispatch::IntegrationTest
     assert_select "#submission_#{@submission.id}"
   end
 
+  test "forms show persisted hide state and use POST and DELETE" do
+    get news_url
+    assert_select "form.submission-hide-form", count: 0
+    sign_in
+    get news_url
+    assert_select "form[action=?][method=post]", submission_hide_path(@submission) do
+      assert_select "button", text: "hide"
+      assert_select "input[name=_method]", count: 0
+    end
+
+    post submission_hide_url(@submission)
+    [ submission_url(@submission), hidden_submissions_url ].each do |url|
+      get url
+      assert_select "form[action=?][method=post]", submission_hide_path(@submission) do
+        assert_select "input[name=_method][value=delete]"
+        assert_select "button", text: "unhide"
+      end
+    end
+    delete submission_hide_url(@submission)
+    get submission_url(@submission)
+    assert_select "form[action=?] button", submission_hide_path(@submission), text: "hide"
+  end
+
+  test "hidden list is linked only from the logged in users own profile" do
+    get user_url(@user)
+    assert_select "a[href=?]", hidden_submissions_path, count: 0
+    sign_in
+    get user_url(users(:one))
+    assert_select "a[href=?]", hidden_submissions_path, count: 0
+    get user_url(@user)
+    assert_select "a[href=?]", hidden_submissions_path, text: "hidden"
+    assert_select "header a.hn-user[href=?]", user_path(@user)
+  end
+
+  test "hidden own submission can also be unhidden from the edit page" do
+    sign_in
+    submission = submissions(:two)
+    @user.submission_hides.create!(submission: submission)
+
+    get edit_submission_url(submission)
+    assert_response :success
+    assert_select "form[action=?]", submission_hide_path(submission) do
+      assert_select "input[name=_method][value=delete]"
+      assert_select "button", text: "unhide"
+    end
+  end
+
   test "authors can hide their own submissions without deleting them" do
     sign_in
     own_submission = submissions(:two)
@@ -194,6 +241,28 @@ class SubmissionHidesControllerTest < ActionDispatch::IntegrationTest
       delete submission_hide_url(@submission)
       assert_response :unprocessable_content
     end
+  ensure
+    ActionController::Base.allow_forgery_protection = previous
+  end
+
+  test "server rendered form tokens allow hide and unhide with CSRF protection enabled" do
+    sign_in
+    previous = ActionController::Base.allow_forgery_protection
+    ActionController::Base.allow_forgery_protection = true
+
+    get news_url
+    token = css_select("form[action='#{submission_hide_path(@submission)}'] input[name=authenticity_token]").first["value"]
+    assert_difference "SubmissionHide.count", 1 do
+      post submission_hide_url(@submission), params: { authenticity_token: token }
+    end
+    assert_response :see_other
+
+    get hidden_submissions_url
+    token = css_select("form[action='#{submission_hide_path(@submission)}'] input[name=authenticity_token]").first["value"]
+    assert_difference "SubmissionHide.count", -1 do
+      delete submission_hide_url(@submission), params: { authenticity_token: token }
+    end
+    assert_response :see_other
   ensure
     ActionController::Base.allow_forgery_protection = previous
   end

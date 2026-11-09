@@ -253,12 +253,14 @@ body {
   text-decoration: underline;
 }
 
-.submission-delete-form {
+.submission-delete-form,
+.submission-hide-form {
   display: inline;
   margin: 0;
 }
 
-.submission-delete-button {
+.submission-delete-button,
+.submission-hide-button {
   border: 0;
   padding: 0;
   color: #828282;
@@ -267,8 +269,16 @@ body {
   cursor: pointer;
 }
 
-.submission-delete-button:hover {
+.submission-delete-button:hover,
+.submission-hide-button:hover {
   text-decoration: underline;
+}
+
+.hn-list-heading {
+  margin: 0 10px 12px;
+  font-size: 10pt;
+  font-weight: normal;
+  color: #828282;
 }
 
 /* Submission detail heading */

@@ -1,0 +1,5 @@
+<% if current_user %>
+  <%= button_to hidden ? "unhide" : "hide", submission_hide_path(submission),
+                method: hidden ? :delete : :post,
+                class: "submission-hide-button", form: { class: "submission-hide-form" } %>
+<% end %>
