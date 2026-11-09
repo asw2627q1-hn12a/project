@@ -17,13 +17,14 @@
         <div class="hn-header-left">
           <a href="<%= root_path %>" class="hn-logo">Y</a>
           <a href="<%= news_path %>" class="hn-brand">Hacker News</a>
-          <nav class="hn-nav">
-            <a href="<%= newest_path %>">new</a> |
-            <a href="#">past</a> |
-            <a href="<%= comments_path %>">comentaris</a> |
-            <a href="<%= ask_path %>">ask</a> |
-            <a href="#">show</a> |
-            <a href="<%= submit_path %>">submit</a> |
+          <nav class="hn-nav" aria-label="Main navigation">
+            <%= nav_link "new", newest_path %> |
+            <% if current_user %>
+              <%= nav_link "threads", threads_path %> |
+            <% end %>
+            <%= nav_link "comments", comments_path %> |
+            <%= nav_link "ask", ask_path %> |
+            <%= nav_link "submit", submit_path %>
           </nav>
           <%= form_with url: search_path, method: :get, html: { class: "hn-header-search", role: "search" } do |form| %>
             <%= form.search_field :q, value: @query, placeholder: "Search submissions by title", aria: { label: "Search submissions by title" }, required: true %>

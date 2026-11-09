@@ -78,7 +78,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     get submissions_url
 
     assert_response :success
-    assert_select ".hn-nav a[href=?]", comments_path, text: "comentaris"
+    assert_select ".hn-nav a[href=?]", comments_path, text: "comments"
   end
 
   test "creates a comment as the logged in user and ignores a submitted user id" do

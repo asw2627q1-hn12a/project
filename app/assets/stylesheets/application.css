@@ -53,6 +53,10 @@ body {
   font-size: 10pt;
 }
 
+.hn-nav a.hn-nav-active {
+  color: #ffffff;
+}
+
 .hn-header-right {
   display: flex;
   align-items: center;

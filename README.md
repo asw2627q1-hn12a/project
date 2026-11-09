@@ -17,6 +17,7 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 
 ## Funcionalitats actuals
 
+- **Menú superior**: `new | threads | comments | ask | submit` (threads només amb sessió) i la pàgina actual es mostra ressaltada. Past, Show i Jobs queden fora de l'abast del primer lliurament.
 - **Login amb GitHub** (OAuth via OmniAuth). L'usuari es crea automàticament el primer cop que inicia sessió.
 - **Vote/unvote de submissions** al detall i als llistats: només amb sessió, sobre submissions alienes i un vot per usuari. Votar suma un punt i retirar el vot propi en resta un. Les submissions noves conserven el punt inicial, sense vot automàtic de l'autor.
   - Presentació inspirada en Hacker News: triangle gris per votar, que desapareix després del vot, i acció `unvote` al costat dels punts, autor i antiguitat del llistat. Són formularis POST/DELETE amb protecció CSRF, encara que visualment semblin enllaços. No cal JavaScript.
