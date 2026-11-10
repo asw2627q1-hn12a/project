@@ -17,7 +17,12 @@
       | Resposta a <%= link_to(comment.parent.deleted? ? tag.em("[#{t("comments.deleted", locale: :ca)}]") : comment.parent.user.username,
                                submission_comment_path(comment.submission, comment.parent)) %>
     <% end %>
-    | <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+    | <span class="comment-thread-actions">
+      <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+      <% if current_user && !comment.deleted? %>
+        | <%= render "shared/favorite_button", record: comment, icon_only: true %>
+      <% end %>
+    </span>
     <% if current_user && comment.user_id != current_user.id && voted %>
       | <%= render "comments/vote_button", comment: comment, voted: true %>
     <% end %>

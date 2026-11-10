@@ -23,9 +23,11 @@ Rails.application.routes.draw do
   get "/hidden", to: "submission_hides#index", as: :hidden_submissions
 
   resources :submissions do
+    resource :favorite, only: %i[create destroy], controller: "favorites"
     resource :hide, only: %i[create destroy], controller: "submission_hides"
     resource :vote, only: %i[ create destroy ], controller: "submission_votes"
     resources :comments, only: %i[ show new create edit update destroy ] do
+      resource :favorite, only: %i[create destroy], controller: "favorites"
       resource :vote, only: %i[ create destroy ], controller: "comment_votes"
     end
   end
