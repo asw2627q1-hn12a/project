@@ -9,3 +9,6 @@
     </tbody>
   </table>
 <% end %>
+
+<%# Igual que les altres llistes del perfil (users/_submission_list): tornar al perfil propi %>
+<p class="submit-back-link"><%= link_to "back to #{current_user.username}", current_user %></p>

@@ -128,6 +128,7 @@ class SubmissionHidesControllerTest < ActionDispatch::IntegrationTest
     sign_in
     get hidden_submissions_url
     assert_select "p[role=status]", text: "No hidden submissions."
+    assert_select "a[href=?]", user_path(@user), text: "back to #{@user.username}"
 
     top = Submission.create!(title: "Top hidden", user: users(:one), points: 20)
     [ @submission, top ].each { |submission| @user.submission_hides.create!(submission: submission) }
