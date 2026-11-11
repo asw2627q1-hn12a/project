@@ -7,12 +7,17 @@
   <% end %>
 
   <div class="submission-heading-content">
-    <h1 class="submission-heading-title">
-      <%= sanitize(tag.a(submission.title, href: submission.url.presence || submission_path(submission)), tags: %w[a], attributes: %w[href]) %>
-      <% if submission.domain.present? %>
-        <span class="submission-heading-domain">(<%= sanitize(tag.a(submission.domain, href: submission.url), tags: %w[a], attributes: %w[href]) %>)</span>
+    <div class="submission-title-row">
+      <h1 class="submission-heading-title">
+        <%= sanitize(tag.a(submission.title, href: submission.url.presence || submission_path(submission)), tags: %w[a], attributes: %w[href]) %>
+        <% if submission.domain.present? %>
+          <span class="submission-heading-domain">(<%= sanitize(tag.a(submission.domain, href: submission.url), tags: %w[a], attributes: %w[href]) %>)</span>
+        <% end %>
+      </h1>
+      <% if current_user %>
+        <%= render "shared/favorite_button", record: submission, icon_only: true %>
       <% end %>
-    </h1>
+    </div>
 
     <div class="submission-heading-meta">
       <span class="score"><%= pluralize(submission.points, "point") %></span>

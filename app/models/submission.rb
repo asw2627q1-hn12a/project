@@ -5,6 +5,7 @@ class Submission < ApplicationRecord
   has_many :submission_votes, dependent: :destroy
   has_many :comments, dependent: :destroy
   has_many :submission_hides, dependent: :destroy
+  has_many :submission_favorites, dependent: :destroy
 
   scope :visible_to, ->(user) {
     user ? where.not(id: user.submission_hides.select(:submission_id)) : all

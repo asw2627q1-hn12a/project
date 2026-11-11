@@ -494,12 +494,14 @@ body {
 }
 
 .submission-delete-form,
+.favorite-form,
 .submission-hide-form {
   display: inline;
   margin: 0;
 }
 
 .submission-delete-button,
+.favorite-button,
 .submission-hide-button {
   border: 0;
   padding: 0;
@@ -510,6 +512,7 @@ body {
 }
 
 .submission-delete-button:hover,
+.favorite-button:hover,
 .submission-hide-button:hover {
   text-decoration: underline;
 }
@@ -519,6 +522,58 @@ body {
   font-size: 10pt;
   font-weight: normal;
   color: #828282;
+}
+
+.favorite-control {
+  position: relative;
+  display: inline-block;
+}
+
+.favorite-button--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin: -5px -3px;
+  vertical-align: middle;
+  color: #65655c;
+}
+
+.favorite-button--icon[aria-pressed="true"],
+.favorite-button--icon:hover {
+  color: #a34300;
+}
+
+.favorite-button--icon:focus-visible {
+  outline: 2px solid #a34300;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.comment-thread-actions {
+  white-space: nowrap;
+}
+
+.favorite-tooltip {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 7px);
+  right: 0;
+  width: max-content;
+  padding: 5px 8px;
+  border-radius: 3px;
+  background: #333;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.4;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.favorite-control:hover .favorite-tooltip,
+.favorite-control:focus-within .favorite-tooltip {
+  visibility: visible;
 }
 
 /* Submission detail heading */
@@ -543,6 +598,16 @@ body {
   font-size: 10pt;
   font-weight: normal;
   overflow-wrap: anywhere;
+}
+
+.submission-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.submission-title-row .favorite-control {
+  flex: none;
 }
 
 .submission-heading-title a {
