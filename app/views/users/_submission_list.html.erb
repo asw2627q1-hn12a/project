@@ -1,0 +1,16 @@
+<h1 class="hn-list-heading"><%= heading %></h1>
+
+<% if @submissions.empty? %>
+  <p role="status">No submissions yet.</p>
+<% else %>
+  <table class="hn-itemlist" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <% hidden_ids = current_user ? current_user.submission_hides.pluck(:submission_id) : [] %>
+      <% @submissions.each do |submission| %>
+        <%= render "submissions/list_item", submission: submission, hidden: hidden_ids.include?(submission.id) %>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<p class="submit-back-link"><%= link_to "back to #{@user.username}", @user %></p>

@@ -31,7 +31,14 @@ Rails.application.routes.draw do
       resource :vote, only: %i[ create destroy ], controller: "comment_votes"
     end
   end
-  resources :users, except: %i[ new create ]
+  resources :users, except: %i[ new create ] do
+    member do
+      get :submissions
+      get :comments
+      get :upvoted
+      get :upvoted_comments
+    end
+  end
 
   # OmniAuth routes
   get "/auth/:provider/callback", to: "sessions#create"

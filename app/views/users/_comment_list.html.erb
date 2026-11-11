@@ -1,0 +1,21 @@
+<% prepare_comment_votes(@comments) %>
+<section class="recent-comments">
+  <h2><%= heading %></h2>
+
+  <% if @comments.empty? %>
+    <p role="status">No comments yet.</p>
+  <% else %>
+    <% @comments.each do |comment| %>
+      <article id="<%= dom_id(comment) %>" class="recent-comment">
+        <%= render "comments/preview", comment: comment %>
+
+        <p class="recent-comment-context">
+          A la publicació <%= link_to comment.submission.title, submission_path(comment.submission, anchor: "comments") %>
+          · <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+        </p>
+      </article>
+    <% end %>
+  <% end %>
+</section>
+
+<p class="submit-back-link"><%= link_to "back to #{@user.username}", @user %></p>

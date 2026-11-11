@@ -28,10 +28,19 @@
   </tbody>
 </table>
 
+<nav class="hn-profile-lists" aria-label="Profile lists">
+  <%= link_to "submissions", submissions_user_path(@user) %>
+  <%= link_to "comments", comments_user_path(@user) %>
+  <% if own_profile %>
+    <%= link_to "hidden", hidden_submissions_path %>
+    <%= link_to "upvoted submissions", upvoted_user_path(@user) %>
+    <%= link_to "upvoted comments", upvoted_comments_user_path(@user) %>
+  <% end %>
+</nav>
+
 <% if own_profile %>
   <div class="hn-profile-actions">
     <%= link_to "edit profile", edit_user_path(@user) %>
-    <%= link_to "hidden", hidden_submissions_path %>
     <%= button_to "delete account", @user, method: :delete, class: "hn-profile-delete",
           form: { data: { turbo_confirm: "Segur que vols eliminar el teu compte?" } } %>
   </div>

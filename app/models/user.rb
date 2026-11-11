@@ -9,6 +9,8 @@ class User < ApplicationRecord
   has_many :hidden_submissions, through: :submission_hides, source: :submission
   has_many :comment_votes, dependent: :destroy
   has_many :submission_votes, dependent: :destroy
+  has_many :upvoted_submissions, through: :submission_votes, source: :submission
+  has_many :upvoted_comments, through: :comment_votes, source: :comment
   has_many :submissions, dependent: :destroy
   has_many :comments, dependent: :destroy
 

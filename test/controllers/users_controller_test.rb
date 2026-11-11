@@ -141,6 +141,76 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_nil @user.reload.about
   end
 
+  test "anyone can list a user's submissions and comments" do
+    submission = Submission.create!(title: "Own list item", user: @user)
+    Comment.create!(submission: submission, user: @user, body: "Public comment")
+    deleted = Comment.create!(submission: submission, user: @user, body: "Gone")
+    deleted.soft_delete!
+
+    get submissions_user_url(@user)
+    assert_response :success
+    assert_select ".titleline a[href=?]", submission_path(submission), text: "Own list item"
+
+    get comments_user_url(@user)
+    assert_response :success
+    assert_select ".comment-body", text: /Public comment/
+    assert_select "##{ActionView::RecordIdentifier.dom_id(deleted)}", count: 0
+  end
+
+  test "profile links public lists for visitors and private lists only for the owner" do
+    get user_url(@user)
+    assert_select "a[href=?]", submissions_user_path(@user)
+    assert_select "a[href=?]", comments_user_path(@user)
+    assert_select "a[href=?]", upvoted_user_path(@user), count: 0
+
+    sign_in
+    get user_url(current_user)
+    assert_select "a[href=?]", upvoted_user_path(current_user)
+    assert_select "a[href=?]", upvoted_comments_user_path(current_user)
+  end
+
+  test "owner sees upvoted submissions and comments" do
+    sign_in
+    user = current_user
+    submission = Submission.create!(title: "Liked submission", user: @user)
+    comment = Comment.create!(submission: submission, user: @user, body: "Liked comment")
+    SubmissionVote.create!(user: user, submission: submission)
+    CommentVote.create!(user: user, comment: comment)
+
+    get upvoted_user_url(user)
+    assert_response :success
+    assert_select ".titleline a[href=?]", submission_path(submission), text: "Liked submission"
+
+    get upvoted_comments_user_url(user)
+    assert_response :success
+    assert_select ".comment-body", text: /Liked comment/
+  end
+
+  test "upvoted shows unhide for a submission the owner also hid" do
+    sign_in
+    user = current_user
+    submission = Submission.create!(title: "Voted then hidden", user: @user)
+    SubmissionVote.create!(user: user, submission: submission)
+    SubmissionHide.create!(user: user, submission: submission)
+
+    get upvoted_user_url(user)
+
+    assert_select "form[action=?]", submission_hide_path(submission) do
+      assert_select "button, input[type=submit]", text: "unhide"
+    end
+  end
+
+  test "upvoted lists are private on the server" do
+    get upvoted_user_url(@user)
+    assert_redirected_to root_url
+
+    sign_in
+    get upvoted_user_url(@user)
+    assert_redirected_to root_url
+    get upvoted_comments_user_url(@user)
+    assert_redirected_to root_url
+  end
+
   private
 
   def sign_in

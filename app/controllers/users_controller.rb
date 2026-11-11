@@ -1,7 +1,9 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: %i[ show edit update destroy ]
-  before_action :require_login, only: %i[ new create edit update destroy ]
-  before_action :require_owner, only: %i[ edit update destroy ]
+  PRIVATE_LISTS = %i[ upvoted upvoted_comments ].freeze
+
+  before_action :set_user, only: %i[ show edit update destroy submissions comments ] + PRIVATE_LISTS
+  before_action :require_login, only: %i[ new create edit update destroy ] + PRIVATE_LISTS
+  before_action :require_owner, only: %i[ edit update destroy ] + PRIVATE_LISTS
 
   # GET /users or /users.json
   def index
@@ -10,6 +12,26 @@ class UsersController < ApplicationController
 
   # GET /users/1 or /users/1.json
   def show
+  end
+
+  # GET /users/1/submissions (públic)
+  def submissions
+    @submissions = @user.submissions.visible_to(current_user).with_comments_count.includes(:user).order(created_at: :desc)
+  end
+
+  # GET /users/1/comments (públic)
+  def comments
+    @comments = @user.comments.where(deleted_at: nil).includes(:user, :submission, parent: :user).order(created_at: :desc)
+  end
+
+  # GET /users/1/upvoted (només el propietari)
+  def upvoted
+    @submissions = @user.upvoted_submissions.with_comments_count.includes(:user).by_relevance
+  end
+
+  # GET /users/1/upvoted_comments (només el propietari)
+  def upvoted_comments
+    @comments = @user.upvoted_comments.where(deleted_at: nil).includes(:user, :submission, parent: :user).order(created_at: :desc)
   end
 
   # GET /users/new
