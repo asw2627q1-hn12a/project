@@ -59,9 +59,9 @@ class Submission < ApplicationRecord
     uri = URI.parse(url)
     return if %w[http https].include?(uri.scheme&.downcase) && uri.host.present?
 
-    errors.add(:url, "debe ser una URL válida (empezando por http:// o https://)")
+    errors.add(:url, "must be a valid URL starting with http:// or https://")
   rescue URI::InvalidURIError
-    errors.add(:url, "debe ser una URL válida (empezando por http:// o https://)")
+    errors.add(:url, "must be a valid URL starting with http:// or https://")
   end
 
   def normalize_fields

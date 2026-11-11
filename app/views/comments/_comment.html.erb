@@ -3,15 +3,15 @@
 
   <div class="comment-actions">
     <% if current_user %>
-      <%= link_to "Respon", new_submission_comment_path(submission, parent_id: comment.id), class: "comment-reply" %>
+      <%= link_to "Reply", new_submission_comment_path(submission, parent_id: comment.id), class: "comment-reply" %>
       <% if current_user == comment.user && !comment.deleted? %>
-        <%= link_to "Edita", edit_submission_comment_path(submission, comment), class: "comment-action" %>
-        <%= button_to "Elimina", submission_comment_path(submission, comment), method: :delete,
+        <%= link_to "Edit", edit_submission_comment_path(submission, comment), class: "comment-action" %>
+        <%= button_to "Delete", submission_comment_path(submission, comment), method: :delete,
                       class: "comment-action comment-delete",
-                      form: { data: { turbo_confirm: "Vols eliminar aquest comentari?" } } %>
+                      form: { data: { turbo_confirm: "Delete this comment? Replies will be preserved." } } %>
       <% end %>
     <% else %>
-      <%= button_to "Inicia sessió per respondre", "/auth/github", method: :post,
+      <%= button_to "Log in to reply", "/auth/github", method: :post,
                     form: { data: { turbo: false }, class: "comment-login-form" }, class: "comment-reply" %>
     <% end %>
   </div>

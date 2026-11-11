@@ -1,26 +1,26 @@
 <section class="comments-section">
-  <h2>Edita el comentari</h2>
-  <p class="comment-current-user">Comentes com a <strong><%= current_user.username %></strong></p>
+  <h2>Edit comment</h2>
+  <p class="comment-current-user">Commenting as <strong><%= current_user.username %></strong></p>
 
   <%= form_with(model: [ @submission, @comment ], class: "comment-form") do |form| %>
     <% if @comment.errors.any? %>
       <div class="comment-errors">
-        <p>No s'han pogut desar els canvis:</p>
+        <p>Could not save your changes:</p>
         <ul>
           <% @comment.errors.each do |error| %>
-            <li>El comentari <%= error.message %></li>
+            <li>Comment <%= error.message %></li>
           <% end %>
         </ul>
       </div>
     <% end %>
 
     <div class="comment-form-field">
-      <%= form.label :body, "Comentari" %>
+      <%= form.label :body, "Comment" %>
       <%= form.text_area :body, rows: 4, required: true %>
     </div>
 
-    <%= form.submit "Desa els canvis" %>
+    <%= form.submit "Save changes" %>
   <% end %>
 
-  <%= link_to "Torna al fil", submission_comment_path(@submission, @comment) %>
+  <%= link_to "Back to thread", submission_comment_path(@submission, @comment) %>
 </section>

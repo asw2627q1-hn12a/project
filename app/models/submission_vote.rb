@@ -22,6 +22,6 @@ class SubmissionVote < ApplicationRecord
     return if submission.nil? || user_id.nil?
     return unless submission.user_id == user_id
 
-    errors.add(:submission, "no pot ser pròpia")
+    errors.add(:submission, "cannot belong to you")
   end
 end

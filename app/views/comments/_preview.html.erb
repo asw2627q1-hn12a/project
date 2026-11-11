@@ -5,20 +5,20 @@
   <% end %>
   <div class="comment-meta">
     <% if comment.deleted? %>
-      <span class="comment-author-deleted"><em>[<%= t("comments.deleted", locale: :ca) %>]</em></span>
+      <span class="comment-author-deleted"><em>[<%= t("comments.deleted") %>]</em></span>
     <% else %>
-      <span class="comment-score"><%= pluralize(comment.points, "punt", plural: "punts") %></span>
+      <span class="comment-score"><%= pluralize(comment.points, "point") %></span>
       ·
       <%= link_to comment.user.username, user_path(comment.user), class: "comment-author" %>
     <% end %>
-    <%= link_to I18n.with_locale(:ca) { time_ago_in_words(comment.created_at) },
+    <%= link_to "#{time_ago_in_words(comment.created_at)} ago",
                 submission_path(comment.submission, anchor: dom_id(comment)), class: "comment-age" %>
     <% if comment.parent %>
-      | Resposta a <%= link_to(comment.parent.deleted? ? tag.em("[#{t("comments.deleted", locale: :ca)}]") : comment.parent.user.username,
+      | Reply to <%= link_to(comment.parent.deleted? ? tag.em("[#{t("comments.deleted")}]") : comment.parent.user.username,
                                submission_comment_path(comment.submission, comment.parent)) %>
     <% end %>
     | <span class="comment-thread-actions">
-      <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+      <%= link_to "Full thread", submission_comment_path(comment.submission, comment) %>
       <% if current_user && (!comment.deleted? || favorited?(comment)) %>
         | <%= render "shared/favorite_button", record: comment, icon_only: true %>
       <% end %>
@@ -30,7 +30,7 @@
 </div>
 <div class="comment-body">
   <% if comment.deleted? %>
-    <p class="comment-deleted"><em>[<%= t("comments.deleted", locale: :ca) %>]</em></p>
+    <p class="comment-deleted"><em>[<%= t("comments.deleted") %>]</em></p>
   <% else %>
     <%= simple_format(comment.body) %>
   <% end %>

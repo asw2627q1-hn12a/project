@@ -82,19 +82,19 @@ class VotingTest < ApplicationSystemTestCase
 
     assert_current_path submission_path(@submission)
     within "#comment_#{@comment.id}" do
-      assert_text "2 punts"
+      assert_text "2 points"
       assert_button "unvote"
     end
 
     visit comments_url
     within "#comment_#{@comment.id}" do
-      assert_text "2 punts"
+      assert_text "2 points"
       click_button "unvote"
     end
 
     assert_current_path comments_path
     within "#comment_#{@comment.id}" do
-      assert_text "1 punt"
+      assert_text "1 point"
       assert_button "▲"
     end
     assert_equal 1, @comment.reload.points

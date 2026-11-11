@@ -54,7 +54,7 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
     get submission_url(@submission)
 
     assert_response :success
-    assert_select "#comment_#{@comment.id} .comment-score", text: "1 punt"
+    assert_select "#comment_#{@comment.id} .comment-score", text: "1 point"
     assert_select ".comment-vote-form", count: 0
     assert_select "#comment_#{@comment.id} form.hn-vote-login-form[action='/auth/github'][method=post][data-turbo=false]" do
       assert_select "button[aria-label='Log in to vote']"
@@ -86,7 +86,7 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
     pages.each do |url|
       get url
       assert_comment_vote_form "vote"
-      assert_select "#comment_#{@comment.id} .comment-score", text: "1 punt"
+      assert_select "#comment_#{@comment.id} .comment-score", text: "1 point"
     end
 
     post vote_url
@@ -96,7 +96,7 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
     pages.each do |url|
       get url
       assert_comment_vote_form "unvote", deleting: true
-      assert_select "#comment_#{@comment.id} .comment-score", text: "2 punts"
+      assert_select "#comment_#{@comment.id} .comment-score", text: "2 points"
       assert_select "#comment_#{@comment.id} .hn-vote-button--arrow", count: 0
     end
 
@@ -107,7 +107,7 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
     pages.each do |url|
       get url
       assert_comment_vote_form "vote"
-      assert_select "#comment_#{@comment.id} .comment-score", text: "1 punt"
+      assert_select "#comment_#{@comment.id} .comment-score", text: "1 point"
     end
   end
 
@@ -307,7 +307,7 @@ class CommentVotesControllerTest < ActionDispatch::IntegrationTest
   test "supports voting replies at any depth" do
     sign_in
     parent = Comment.create!(submission: @submission, user: @voter, body: "Resposta", parent: @comment)
-    @comment = Comment.create!(submission: @submission, user: users(:one), body: "Resposta a resposta", parent: parent)
+    @comment = Comment.create!(submission: @submission, user: users(:one), body: "Reply to resposta", parent: parent)
 
     post vote_url
 

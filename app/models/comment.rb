@@ -6,7 +6,7 @@ class Comment < ApplicationRecord
   has_many :comment_favorites, dependent: :destroy
   has_many :replies, class_name: "Comment", foreign_key: :parent_id, dependent: :destroy, inverse_of: :parent
 
-  validates :body, presence: { message: "no pot estar buit" }, unless: :deleted?
+  validates :body, presence: { message: "can't be blank" }, unless: :deleted?
   validate :parent_belongs_to_submission
   validates :points, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
@@ -23,6 +23,6 @@ class Comment < ApplicationRecord
     def parent_belongs_to_submission
       return if parent.nil? || parent.submission_id == submission_id
 
-      errors.add(:parent, "ha de pertànyer a la mateixa publicació")
+      errors.add(:parent, "must belong to the same submission")
     end
 end

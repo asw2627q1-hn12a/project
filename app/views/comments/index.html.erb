@@ -1,19 +1,19 @@
 <% prepare_comment_votes(@comments) %>
 <section class="recent-comments">
-  <h2>Comentaris recents</h2>
+  <h2>Recent comments</h2>
 
   <% if @comments.empty? %>
-    <p>Encara no hi ha comentaris.</p>
+    <p>No comments yet.</p>
   <% else %>
     <% @comments.each do |comment| %>
       <article id="<%= dom_id(comment) %>" class="recent-comment">
         <%= render "comments/preview", comment: comment %>
 
         <p class="recent-comment-context">
-          A la publicació <%= link_to comment.submission.title, submission_path(comment.submission, anchor: "comments") %>
-          · <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+          On submission <%= link_to comment.submission.title, submission_path(comment.submission, anchor: "comments") %>
+          · <%= link_to "Full thread", submission_comment_path(comment.submission, comment) %>
           <% if current_user %>
-            · <%= link_to "Respon", new_submission_comment_path(comment.submission, parent_id: comment.id) %>
+            · <%= link_to "Reply", new_submission_comment_path(comment.submission, parent_id: comment.id) %>
           <% end %>
         </p>
       </article>

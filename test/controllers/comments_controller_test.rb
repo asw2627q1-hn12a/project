@@ -70,7 +70,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#comments"
     assert_select "#comment_#{comment.id}"
-    assert_select ".comment-login-prompt", text: /cal iniciar sessió/
+    assert_select ".comment-login-prompt", text: /Please log in/
     assert_select ".comment-form", 0
   end
 
@@ -104,7 +104,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to root_url
-    assert_equal "Cal iniciar sessió per continuar.", flash[:alert]
+    assert_equal "Please log in to continue.", flash[:alert]
   end
 
   test "renders the logged in user in the comment form without an author selector" do
@@ -166,7 +166,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".reply-context .comment-body", text: "Comentari pare"
-    assert_select "button", text: /Inicia sessió amb GitHub/
+    assert_select "button", text: /Log in with GitHub/
   end
 
   test "renders a reply form for the logged in user" do
@@ -207,7 +207,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_content
-    assert_select ".comment-errors", text: /no s'ha pogut publicar/i
+    assert_select ".comment-errors", text: /could not post the comment/i
   end
 
   test "returns validation errors as JSON when a comment is blank" do
@@ -234,7 +234,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_content
     assert_select ".reply-context .comment-body", text: "Comentari pare"
     assert_select "input[type=hidden][name='comment[parent_id]'][value='#{parent.id}']"
-    assert_select ".comment-errors", text: /no s'ha pogut publicar/i
+    assert_select ".comment-errors", text: /could not post the comment/i
   end
 
   test "does not allow replying to a comment from another submission" do
@@ -260,8 +260,8 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     get submission_url(@submission)
     assert_response :success
-    assert_select "#comment_#{comment.id} a.comment-action", text: "Edita"
-    assert_select "#comment_#{comment.id} button.comment-action", text: "Elimina"
+    assert_select "#comment_#{comment.id} a.comment-action", text: "Edit"
+    assert_select "#comment_#{comment.id} button.comment-action", text: "Delete"
 
     get edit_submission_comment_url(@submission, comment)
     assert_response :success
@@ -272,7 +272,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to submission_comment_url(@submission, comment)
-    assert_equal "Canvis desats.", flash[:notice]
+    assert_equal "Changes saved.", flash[:notice]
     assert_equal "Text editat", comment.reload.body
     assert_equal author, comment.user
     assert_equal parent, comment.parent
@@ -325,14 +325,14 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to submission_comment_url(@submission, comment)
-    assert_equal "Comentari eliminat. Les respostes es conserven.", flash[:notice]
+    assert_equal "Comment deleted. Replies have been preserved.", flash[:notice]
     assert_empty comment.reload.body
     assert_predicate comment, :deleted?
     assert_equal ancestor, comment.parent
     assert_equal comment, reply.reload.parent
 
     follow_redirect!
-    assert_select "#comment_#{comment.id} .comment-deleted", text: "[Comentari eliminat]"
+    assert_select "#comment_#{comment.id} .comment-deleted", text: "[deleted]"
     assert_select "#comment_#{reply.id} .comment-body", text: "Resposta conservada"
     assert_select "#comment_#{comment.id} .comment-action", 0
     assert_no_match "Text que s'eliminarà", response.body
@@ -356,7 +356,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     get threads_url
 
     assert_redirected_to root_url
-    assert_equal "Cal iniciar sessió per continuar.", flash[:alert]
+    assert_equal "Please log in to continue.", flash[:alert]
   end
 
   test "shows the logged in user's comments with their replies in threads" do

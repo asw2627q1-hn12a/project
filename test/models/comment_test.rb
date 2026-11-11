@@ -2,7 +2,7 @@ require "test_helper"
 
 class CommentTest < ActiveSupport::TestCase
   test "requires points to be a nonnegative integer" do
-    comment = Comment.new(submission: submissions(:one), user: users(:one), body: "Comentari")
+    comment = Comment.new(submission: submissions(:one), user: users(:one), body: "Comment")
 
     [ nil, -1, 1.5 ].each do |points|
       comment.points = points
@@ -24,14 +24,14 @@ class CommentTest < ActiveSupport::TestCase
     reply = Comment.new(submission: submissions(:two), user: users(:two), body: "Resposta", parent: parent)
 
     assert_not reply.valid?
-    assert_includes reply.errors[:parent], "ha de pertànyer a la mateixa publicació"
+    assert_includes reply.errors[:parent], "must belong to the same submission"
   end
 
   test "requires a comment body" do
     comment = Comment.new(submission: submissions(:one), user: users(:one), body: "")
 
     assert_not comment.valid?
-    assert_includes comment.errors[:body], "no pot estar buit"
+    assert_includes comment.errors[:body], "can't be blank"
   end
 
   test "soft deletion clears the text and keeps replies attached" do
