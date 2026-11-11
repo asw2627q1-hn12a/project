@@ -42,7 +42,7 @@ class CommentVoteTest < ActiveSupport::TestCase
     vote = CommentVote.new(user: @comment.user, comment: @comment)
 
     assert_not vote.save
-    assert_includes vote.errors[:comment], "no pot ser propi"
+    assert_includes vote.errors[:comment], "cannot belong to you"
     assert_equal 1, @comment.reload.points
   end
 
@@ -82,7 +82,7 @@ class CommentVoteTest < ActiveSupport::TestCase
     vote = CommentVote.new(user: @voter, comment: @comment)
 
     assert_not vote.save
-    assert_includes vote.errors[:comment], "no pot estar eliminat"
+    assert_includes vote.errors[:comment], "cannot be deleted"
     assert_equal 1, @comment.reload.points
   end
 

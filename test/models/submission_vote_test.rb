@@ -38,7 +38,7 @@ class SubmissionVoteTest < ActiveSupport::TestCase
     )
 
     assert_not vote.valid?
-    assert_includes vote.errors[:submission], "no pot ser pròpia"
+    assert_includes vote.errors[:submission], "cannot belong to you"
   end
 
   test "requires a user and a submission" do

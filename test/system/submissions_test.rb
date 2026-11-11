@@ -48,6 +48,32 @@ class SubmissionsTest < ApplicationSystemTestCase
     assert_text "Submission was successfully created"
   end
 
+  test "browser validation uses English and clears errors after correcting the input" do
+    sign_in
+    visit new_submission_url
+
+    click_button "submit"
+    assert_equal "Please fill out this field.", find("#submission_title").evaluate_script("this.validationMessage")
+
+    fill_in "title", with: "English validation"
+    fill_in "url", with: "invalid-url"
+    click_button "submit"
+    assert_equal "Please enter a valid URL.", find("#submission_url").evaluate_script("this.validationMessage")
+
+    fill_in "url", with: "https://english-validation.example.test"
+    click_button "submit"
+    assert_text "Submission was successfully created"
+
+    visit edit_user_url(User.find_by!(uid: "github-submissions-system"))
+    fill_in "Email", with: "invalid-email"
+    click_button "update"
+    assert_equal "Please enter a valid email address.", find("#user_email").evaluate_script("this.validationMessage")
+
+    fill_in "Email", with: "english-validation@example.test"
+    click_button "update"
+    assert_text "User was successfully updated"
+  end
+
   test "should update Submission" do
     sign_in_as_owner
     visit root_url

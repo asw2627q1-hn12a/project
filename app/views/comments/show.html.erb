@@ -1,8 +1,8 @@
 <% prepare_comment_votes([ @comment ], include_replies: true) %>
 <section class="comments-section">
-  <h2>Fil de comentaris</h2>
+  <h2>Comment thread</h2>
   <p class="comment-submission">
-    Publicació: <%= link_to @submission.title, submission_path(@submission, anchor: "comments") %>
+    Submission: <%= link_to @submission.title, submission_path(@submission, anchor: "comments") %>
   </p>
 
   <div class="comments-list">
