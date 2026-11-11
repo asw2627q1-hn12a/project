@@ -108,6 +108,30 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_nil user.reload.about
   end
 
+  test "email is private in the users list and in JSON" do
+    get users_url
+    assert_no_match "one@example.com", response.body
+
+    get users_url(format: :json)
+    assert_no_match "one@example.com", response.body
+
+    get user_url(@user, format: :json)
+    assert_response :success
+    assert_not response.parsed_body.key?("email")
+  end
+
+  test "another user cannot see the email but the owner can" do
+    sign_in
+
+    get user_url(@user, format: :json)
+    assert_not response.parsed_body.key?("email")
+    get users_url
+    assert_no_match "one@example.com", response.body
+
+    get user_url(current_user, format: :json)
+    assert_equal "users@example.com", response.parsed_body["email"]
+  end
+
   test "should reject updating another user" do
     sign_in
 
@@ -160,6 +184,20 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     get upvoted_comments_user_url(user)
     assert_response :success
     assert_select ".comment-body", text: /Liked comment/
+  end
+
+  test "upvoted shows unhide for a submission the owner also hid" do
+    sign_in
+    user = current_user
+    submission = Submission.create!(title: "Voted then hidden", user: @user)
+    SubmissionVote.create!(user: user, submission: submission)
+    SubmissionHide.create!(user: user, submission: submission)
+
+    get upvoted_user_url(user)
+
+    assert_select "form[action=?]", submission_hide_path(submission) do
+      assert_select "button, input[type=submit]", text: "unhide"
+    end
   end
 
   test "upvoted lists are private on the server" do

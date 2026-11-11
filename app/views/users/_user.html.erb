@@ -4,9 +4,11 @@
     <%= user.username %>
   </p>
 
-  <p>
-    <strong>Email:</strong>
-    <%= user.email %>
-  </p>
+  <% if user == current_user %>
+    <p>
+      <strong>Email:</strong>
+      <%= user.email %>
+    </p>
+  <% end %>
 
 </div>
