@@ -77,6 +77,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_134607) do
     t.string "uid"
     t.string "avatar", default: "default-avatar.png"
     t.string "banner", default: "default-banner.png"
+    t.text "about"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end

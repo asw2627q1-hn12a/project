@@ -9,6 +9,12 @@ class User < ApplicationRecord
   has_many :comments, dependent: :destroy
 
   validates :username, presence: true, uniqueness: true
+  validates :about, length: { maximum: 2000 }
+
+  # Karma estil HN: suma dels punts de les submissions i dels comentaris de l'usuari.
+  def karma
+    submissions.sum(:points) + comments.sum(:points)
+  end
 
   def self.from_omniauth(auth)
     attempts = 0

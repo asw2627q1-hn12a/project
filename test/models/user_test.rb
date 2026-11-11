@@ -1,6 +1,22 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
+  test "karma adds submission and comment points" do
+    user = User.create!(username: "karma_user")
+    submission = Submission.create!(title: "Karma", user: user, points: 4)
+    Comment.create!(submission: submission, user: user, body: "Hi", points: 2)
+
+    assert_equal 6, user.karma
+  end
+
+  test "about is limited to 2000 characters" do
+    user = users(:one)
+    user.about = "a" * 2001
+
+    assert_not user.valid?
+    assert user.errors.of_kind?(:about, :too_long)
+  end
+
   # test "the truth" do
   #   assert true
   # end
