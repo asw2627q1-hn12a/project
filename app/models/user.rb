@@ -85,9 +85,11 @@ class User < ApplicationRecord
 
   private
 
+  # Es valida tot fitxer que s'adjunti ara, tant si és una pujada nova com si és un blob
+  # que ja existia al storage (p. ex. adjuntat amb el seu signed_id).
   def images_are_valid
     { avatar: avatar, banner: banner }.each do |name, image|
-      next unless image.attached? && image.blob.new_record?
+      next unless attachment_changes.key?(name.to_s) && image.attached?
 
       errors.add(name, "ha de ser PNG, JPEG, GIF o WebP") unless IMAGE_TYPES.include?(image.blob.content_type)
       errors.add(name, "no pot ocupar més de 2 MB") if image.blob.byte_size > MAX_IMAGE_SIZE

@@ -253,6 +253,19 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_not user.reload.avatar.attached?
   end
 
+  test "an existing non image blob attached by signed_id is rejected" do
+    sign_in
+    user = current_user
+    blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new("a" * 3.megabytes), filename: "big.txt", content_type: "text/plain")
+
+    patch user_url(user), params: { user: { avatar: blob.signed_id } }
+
+    assert_response :unprocessable_content
+    assert_select "[role=alert]", text: /PNG, JPEG, GIF o WebP/
+    assert_select "[role=alert]", text: /2 MB/
+    assert_not user.reload.avatar.attached?
+  end
+
   test "users cannot change another user's avatar" do
     sign_in
 
