@@ -12,6 +12,8 @@ class User < ApplicationRecord
 
   IMAGE_TYPES = %w[ image/png image/jpeg image/gif image/webp ].freeze
   MAX_IMAGE_SIZE = 2.megabytes
+  # Mida final (amplada, alçada) a la qual el navegador retalla cada imatge abans de pujar-la.
+  IMAGE_DIMENSIONS = { avatar: [ 400, 400 ], banner: [ 1200, 200 ] }.freeze
 
   # Fitxers a l'object storage (Active Storage). Si no n'hi ha, es mostra la imatge per defecte.
   has_one_attached :avatar

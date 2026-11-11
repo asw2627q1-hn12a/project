@@ -32,6 +32,15 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "edit form crops avatar and banner to their final size" do
+    sign_in
+    get edit_user_url(current_user)
+
+    assert_select "[data-controller=image-cropper][data-image-cropper-width-value='400'][data-image-cropper-height-value='400'] input[name='user[avatar]']"
+    assert_select "[data-controller=image-cropper][data-image-cropper-width-value='1200'][data-image-cropper-height-value='200'] input[name='user[banner]']"
+    assert_select "label", text: "about:"
+  end
+
   test "should update user" do
     sign_in
     user = current_user

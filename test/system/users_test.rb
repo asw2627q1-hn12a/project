@@ -27,8 +27,8 @@ class UsersTest < ApplicationSystemTestCase
     visit user_url(@user)
     click_on "edit profile"
 
-    fill_in "About", with: "Hello from the system test"
-    fill_in "Email", with: @user.email
+    fill_in "about:", with: "Hello from the system test"
+    fill_in "email:", with: @user.email
     click_on "update"
 
     assert_text "User was successfully updated"

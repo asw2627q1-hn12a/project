@@ -150,38 +150,140 @@ body {
 }
 
 .hn-profile-remove {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin-top: 4px;
 }
 
+/* Formulari d'edició del perfil: reaprofita .submission-form-field,
+   però amb la columna d'etiquetes prou ampla per a "about:", "avatar:"... */
+.hn-profile-form .submission-form-field {
+  grid-template-columns: 60px minmax(0, 410px);
+  margin-bottom: 8px;
+}
+
+.hn-profile-form .submission-form-field input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.hn-profile-form .submission-form-field input[type="file"] {
+  width: auto;
+}
+
+/* Editor de retall (Cropper.js) */
+.hn-cropper {
+  margin: 6px 0;
+}
+
+.hn-cropper-area {
+  max-width: 410px;
+  background-color: #e8e8e0;
+}
+
+.hn-cropper-area--avatar {
+  width: 260px;
+  height: 260px;
+}
+
+.hn-cropper-area--banner {
+  height: 160px;
+}
+
+/* Cropper.js necessita que la imatge original tingui amplada màxima 100% */
+.hn-cropper-area img {
+  display: block;
+  max-width: 100%;
+}
+
+.hn-cropper-tools {
+  display: flex;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.hn-cropper-tools button {
+  min-width: 26px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hn-cropper small {
+  display: block;
+  color: #828282;
+}
+
+.hn-profile-form .submission-form-actions,
+.hn-profile-form ~ .submit-back-link {
+  margin-left: 64px;
+}
+
+/* Llistes del perfil: "pastilles" discretes en la línia de HN */
 .hn-profile-lists {
-  margin: 0 0 12px 10px;
+  margin: 0 0 14px 10px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 6px;
 }
 
 .hn-profile-lists a {
+  padding: 3px 9px;
+  border: 1px solid #d8d8cc;
+  border-radius: 12px;
+  background-color: #ffffff;
   color: #000000;
-  font-size: 10pt;
+  font-size: 9pt;
+  text-decoration: none;
 }
 
+.hn-profile-lists a:hover {
+  border-color: #ff6600;
+  color: #ff6600;
+}
+
+/* Accions del perfil propi */
 .hn-profile-actions {
-  margin-left: 10px;
+  margin: 0 0 8px 10px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
-.hn-profile-actions a,
+.hn-profile-actions form {
+  margin: 0;
+}
+
+.hn-profile-edit,
 .hn-profile-delete {
-  color: #000000;
-  font-size: 10pt;
-  text-decoration: underline;
-  background: none;
-  border: 0;
-  padding: 0;
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 9pt;
+  line-height: 1.2;
+  text-decoration: none;
   cursor: pointer;
+}
+
+.hn-profile-edit {
+  background-color: #ff6600;
+  color: #ffffff;
+}
+
+.hn-profile-edit:hover {
+  background-color: #e65c00;
+}
+
+.hn-profile-delete {
+  background-color: transparent;
+  border-color: #c9a0a0;
+  color: #a33;
+}
+
+.hn-profile-delete:hover {
+  background-color: #fbeaea;
 }
 
 /* Submit */
