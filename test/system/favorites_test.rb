@@ -29,7 +29,7 @@ class FavoritesSystemTest < ApplicationSystemTestCase
     page.save_screenshot(Rails.root.join("tmp/favorite-star-desktop.png"))
     within "form[action='#{submission_favorite_path(@submission)}']" do
       find("button[aria-label=favorite]").click
-      assert_selector "button[aria-label=unfavorite][aria-pressed=true] svg[fill=currentColor]"
+      assert_selector "button[aria-label=favorite][aria-pressed=true] svg[fill=currentColor]"
     end
     find("form[action='#{submission_favorite_path(@submission)}'] button").send_keys(:tab)
     find("form[action='#{submission_favorite_path(@submission)}'] button").send_keys([ :shift, :tab ])
@@ -38,9 +38,9 @@ class FavoritesSystemTest < ApplicationSystemTestCase
     page.save_screenshot(Rails.root.join("tmp/favorite-star-mobile.png"))
     visit submission_url(@submission)
     within "form[action='#{submission_favorite_path(@submission)}']" do
-      assert_selector "button[aria-label=unfavorite]"
-      find("button[aria-label=unfavorite]").click
-      assert_selector "button[aria-label=favorite]"
+      assert_selector "button[aria-label=favorite][aria-pressed=true]"
+      find("button[aria-label=favorite]").click
+      assert_selector "button[aria-label=favorite][aria-pressed=false]"
     end
     assert_not @user.submission_favorites.exists?(submission: @submission)
   end
@@ -57,17 +57,33 @@ class FavoritesSystemTest < ApplicationSystemTestCase
     assert_selector "#comment_#{reply.id}_favorite_tooltip", text: "Add to favorites"
     within "form[action='#{path}']" do
       find("button[aria-label=favorite]").click
-      assert_selector "button[aria-label=unfavorite] svg[fill=currentColor]"
+      assert_selector "button[aria-label=favorite][aria-pressed=true] svg[fill=currentColor]"
     end
+    page.save_screenshot(Rails.root.join("tmp/comment-favorite-selected-desktop.png"))
+    page.current_window.resize_to(390, 844)
+    page.save_screenshot(Rails.root.join("tmp/comment-favorite-selected-mobile.png"))
     visit submission_comment_url(@submission, reply)
     within "form[action='#{path}']" do
-      assert_selector "button[aria-label=unfavorite]"
-      find("button[aria-label=unfavorite]").click
+      assert_selector "button[aria-label=favorite][aria-pressed=true]"
+      find("button[aria-label=favorite]").click
       assert_selector "button[aria-label=favorite] svg[fill=none]"
     end
     assert_not @user.comment_favorites.exists?(comment: reply)
     page.save_screenshot(Rails.root.join("tmp/favorites-desktop.png"))
     page.current_window.resize_to(390, 844)
     page.save_screenshot(Rails.root.join("tmp/favorites-mobile.png"))
+  end
+
+  test "a favorite on a deleted comment can be removed through the interface" do
+    @user.comment_favorites.create!(comment: @comment)
+    @comment.soft_delete!
+    visit "/auth/github/callback"
+    visit submission_comment_url(@submission, @comment)
+    within "form[action='#{submission_comment_favorite_path(@submission, @comment)}']" do
+      assert_selector "button[aria-label=favorite][aria-pressed=true]"
+      find("button[aria-label=favorite]").click
+    end
+    assert_no_selector "form.favorite-form"
+    assert_not @user.comment_favorites.exists?(comment: @comment)
   end
 end

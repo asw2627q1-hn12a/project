@@ -127,7 +127,7 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
 
   test "deleted comments cannot be favorited but existing favorites can be removed" do
     sign_in
-    path = submission_comment_favorite_url(@submission, @comment)
+    path = submission_comment_favorite_path(@submission, @comment)
     post path
     @comment.soft_delete!
     assert_no_difference "CommentFavorite.count" do
@@ -135,9 +135,17 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
       assert_response :gone
     end
     get submission_url(@submission)
-    assert_select "form[action=?]", path, count: 0
+    assert_select "form[action=?]", path do
+      assert_select "input[name=_method][value=delete]"
+      assert_select "button[aria-label=favorite][aria-pressed=true]"
+    end
     assert_difference "CommentFavorite.count", -1 do
       delete path
+    end
+    @comment.comment_favorites.create!(user: @other_user)
+    [ submission_url(@submission), submission_comment_url(@submission, @comment), comments_url ].each do |url|
+      get url
+      assert_select "form[action=?]", path, count: 0
     end
   end
 

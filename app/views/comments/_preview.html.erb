@@ -19,7 +19,7 @@
     <% end %>
     | <span class="comment-thread-actions">
       <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
-      <% if current_user && !comment.deleted? %>
+      <% if current_user && (!comment.deleted? || favorited?(comment)) %>
         | <%= render "shared/favorite_button", record: comment, icon_only: true %>
       <% end %>
     </span>

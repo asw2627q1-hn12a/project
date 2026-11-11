@@ -353,12 +353,6 @@ body {
   border-radius: 2px;
 }
 
-.comment-meta .favorite-button--icon,
-.comment-meta .favorite-button--icon[aria-pressed="true"],
-.comment-meta .favorite-button--icon:hover {
-  color: #65655c;
-}
-
 .comment-thread-actions {
   white-space: nowrap;
 }
