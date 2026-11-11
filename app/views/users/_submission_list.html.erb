@@ -1,0 +1,13 @@
+<h1 class="hn-list-heading"><%= heading %></h1>
+
+<% if @submissions.empty? %>
+  <p role="status">No submissions yet.</p>
+<% else %>
+  <table class="hn-itemlist" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <%= render partial: "submissions/list_item", collection: @submissions, as: :submission %>
+    </tbody>
+  </table>
+<% end %>
+
+<p class="submit-back-link"><%= link_to "back to #{@user.username}", @user %></p>
