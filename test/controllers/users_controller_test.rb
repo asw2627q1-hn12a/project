@@ -108,6 +108,30 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_nil user.reload.about
   end
 
+  test "email is private in the users list and in JSON" do
+    get users_url
+    assert_no_match "one@example.com", response.body
+
+    get users_url(format: :json)
+    assert_no_match "one@example.com", response.body
+
+    get user_url(@user, format: :json)
+    assert_response :success
+    assert_not response.parsed_body.key?("email")
+  end
+
+  test "another user cannot see the email but the owner can" do
+    sign_in
+
+    get user_url(@user, format: :json)
+    assert_not response.parsed_body.key?("email")
+    get users_url
+    assert_no_match "one@example.com", response.body
+
+    get user_url(current_user, format: :json)
+    assert_equal "users@example.com", response.parsed_body["email"]
+  end
+
   test "should reject updating another user" do
     sign_in
 
