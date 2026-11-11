@@ -258,7 +258,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     patch user_url(user), params: { user: { avatar: fixture_file_upload("not_an_image.txt", "text/plain") } }
 
     assert_response :unprocessable_content
-    assert_select "[role=alert]", text: /PNG, JPEG, GIF o WebP/
+    assert_select "[role=alert]", text: /PNG, JPEG, GIF or WebP/
     assert_not user.reload.avatar.attached?
   end
 
@@ -270,7 +270,7 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     patch user_url(user), params: { user: { avatar: blob.signed_id } }
 
     assert_response :unprocessable_content
-    assert_select "[role=alert]", text: /PNG, JPEG, GIF o WebP/
+    assert_select "[role=alert]", text: /PNG, JPEG, GIF or WebP/
     assert_select "[role=alert]", text: /2 MB/
     assert_not user.reload.avatar.attached?
   end

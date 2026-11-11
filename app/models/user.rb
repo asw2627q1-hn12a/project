@@ -97,8 +97,8 @@ class User < ApplicationRecord
     { avatar: avatar, banner: banner }.each do |name, image|
       next unless attachment_changes.key?(name.to_s) && image.attached?
 
-      errors.add(name, "ha de ser PNG, JPEG, GIF o WebP") unless IMAGE_TYPES.include?(image.blob.content_type)
-      errors.add(name, "no pot ocupar més de 2 MB") if image.blob.byte_size > MAX_IMAGE_SIZE
+      errors.add(name, "must be a PNG, JPEG, GIF or WebP image") unless IMAGE_TYPES.include?(image.blob.content_type)
+      errors.add(name, "must be 2 MB or smaller") if image.blob.byte_size > MAX_IMAGE_SIZE
     end
   end
 

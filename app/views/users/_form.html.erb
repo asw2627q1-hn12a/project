@@ -35,15 +35,15 @@
             <img data-image-cropper-target="image" alt="">
           </div>
           <div class="hn-cropper-tools">
-            <button type="button" data-action="image-cropper#zoomIn" aria-label="Apropa">+</button>
-            <button type="button" data-action="image-cropper#zoomOut" aria-label="Allunya">&minus;</button>
-            <button type="button" data-action="image-cropper#cancel">cancel·la</button>
+            <button type="button" data-action="image-cropper#zoomIn" aria-label="Zoom in">+</button>
+            <button type="button" data-action="image-cropper#zoomOut" aria-label="Zoom out">&minus;</button>
+            <button type="button" data-action="image-cropper#cancel">cancel</button>
           </div>
-          <small>Arrossega la imatge per moure-la i fes zoom amb la roda o amb +/&minus;. Es desarà a <%= width %>×<%= height %> px.</small>
+          <small>Drag the image to move it and zoom with the mouse wheel or +/&minus;. It will be saved at <%= width %>×<%= height %> px.</small>
         </div>
         <% if custom_profile_image?(user, kind) %>
           <label class="hn-profile-remove">
-            <%= form.check_box :"remove_#{kind}" %> eliminar (tornar a la imatge per defecte)
+            <%= form.check_box :"remove_#{kind}" %> remove (use the default image)
           </label>
         <% end %>
       </div>
