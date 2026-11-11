@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_09_134607) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_10_163000) do
+  create_table "comment_favorites", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "comment_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["comment_id"], name: "index_comment_favorites_on_comment_id"
+    t.index ["user_id", "comment_id"], name: "index_comment_favorites_on_user_id_and_comment_id", unique: true
+    t.index ["user_id"], name: "index_comment_favorites_on_user_id"
+  end
+
   create_table "comment_votes", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "comment_id", null: false
@@ -34,6 +44,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_134607) do
     t.index ["parent_id"], name: "index_comments_on_parent_id"
     t.index ["submission_id"], name: "index_comments_on_submission_id"
     t.index ["user_id"], name: "index_comments_on_user_id"
+  end
+
+  create_table "submission_favorites", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "submission_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submission_id"], name: "index_submission_favorites_on_submission_id"
+    t.index ["user_id", "submission_id"], name: "index_submission_favorites_on_user_id_and_submission_id", unique: true
+    t.index ["user_id"], name: "index_submission_favorites_on_user_id"
   end
 
   create_table "submission_hides", force: :cascade do |t|
@@ -81,11 +101,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_09_134607) do
     t.index ["username"], name: "index_users_on_username", unique: true
   end
 
+  add_foreign_key "comment_favorites", "comments"
+  add_foreign_key "comment_favorites", "users"
   add_foreign_key "comment_votes", "comments"
   add_foreign_key "comment_votes", "users"
   add_foreign_key "comments", "comments", column: "parent_id"
   add_foreign_key "comments", "submissions"
   add_foreign_key "comments", "users"
+  add_foreign_key "submission_favorites", "submissions"
+  add_foreign_key "submission_favorites", "users"
   add_foreign_key "submission_hides", "submissions"
   add_foreign_key "submission_hides", "users"
   add_foreign_key "submission_votes", "submissions"

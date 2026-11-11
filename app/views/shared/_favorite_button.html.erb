@@ -1,0 +1,22 @@
+<% if current_user && !(record.is_a?(Comment) && record.deleted? && !favorited?(record)) %>
+  <% saved = favorited?(record) %>
+  <% path = record.is_a?(Submission) ? submission_favorite_path(record) : submission_comment_favorite_path(record.submission_id, record) %>
+  <% if local_assigns[:icon_only] %>
+    <% tooltip_id = "#{dom_id(record)}_favorite_tooltip" %>
+    <span class="favorite-control">
+      <%= button_to path, method: saved ? :delete : :post,
+                    class: "favorite-button favorite-button--icon",
+                    aria: { label: "favorite", pressed: saved, describedby: tooltip_id },
+                    form: { class: "favorite-form" } do %>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="<%= saved ? 'currentColor' : 'none' %>" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="m12 3 2.78 5.63L21 9.54l-4.5 4.39 1.06 6.2L12 17.2l-5.56 2.93 1.06-6.2L3 9.54l6.22-.91L12 3Z" />
+        </svg>
+      <% end %>
+      <span id="<%= tooltip_id %>" class="favorite-tooltip" role="tooltip"><%= saved ? "Remove from favorites" : "Add to favorites" %></span>
+    </span>
+  <% else %>
+    <%= button_to saved ? "unfavorite" : "favorite", path,
+                method: saved ? :delete : :post, class: "favorite-button",
+                aria: { label: "favorite", pressed: saved }, form: { class: "favorite-form" } %>
+  <% end %>
+<% end %>
