@@ -56,7 +56,7 @@ class SubmissionsController < ApplicationController
     if @submission.url.present?
       existing_submission = Submission.find_by("LOWER(url) = ?", @submission.url.strip.downcase)
       if existing_submission
-        redirect_to submission_path(existing_submission), notice: "Esta URL ya había sido publicada."
+        redirect_to submission_path(existing_submission), notice: "This URL has already been submitted."
         return
       end
     end
@@ -101,7 +101,7 @@ class SubmissionsController < ApplicationController
     def require_login_for_submit
       return if current_user
 
-      redirect_to root_path(anchor: "login"), alert: "Cal iniciar sessió per publicar una submission."
+      redirect_to root_path(anchor: "login"), alert: "Please log in to submit a post."
     end
 
     # Use callbacks to share common setup or constraints between actions.

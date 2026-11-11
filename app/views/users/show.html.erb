@@ -42,6 +42,6 @@
   <div class="hn-profile-actions">
     <%= link_to "edit profile", edit_user_path(@user) %>
     <%= button_to "delete account", @user, method: :delete, class: "hn-profile-delete",
-          form: { data: { turbo_confirm: "Segur que vols eliminar el teu compte?" } } %>
+          form: { data: { turbo_confirm: "Are you sure you want to delete your account?" } } %>
   </div>
 <% end %>

@@ -29,7 +29,7 @@ class CommentsController < ApplicationController
       if @comment.save
         format.html do
           redirect_to submission_path(@submission, anchor: helpers.dom_id(@comment)),
-                      notice: "Comentari publicat."
+                      notice: "Comment posted."
         end
         format.json { render json: @comment, status: :created }
       else
@@ -53,7 +53,7 @@ class CommentsController < ApplicationController
     respond_to do |format|
       if @comment.update(edit_comment_params)
         format.html do
-          redirect_to submission_comment_path(@submission, @comment), notice: "Canvis desats."
+          redirect_to submission_comment_path(@submission, @comment), notice: "Changes saved."
         end
         format.json { render json: @comment, status: :ok }
       else
@@ -69,7 +69,7 @@ class CommentsController < ApplicationController
     respond_to do |format|
       format.html do
         redirect_to submission_comment_path(@submission, @comment),
-                    notice: "Comentari eliminat. Les respostes es conserven."
+                    notice: "Comment deleted. Replies have been preserved."
       end
       format.json { head :no_content }
     end

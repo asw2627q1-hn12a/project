@@ -1,5 +1,5 @@
 <section class="comments-section">
-  <h2>Respon al comentari</h2>
+  <h2>Reply to comment</h2>
 
   <div class="reply-context">
     <%= render "comments/preview", comment: @parent_comment %>
@@ -8,10 +8,10 @@
   <% if current_user %>
     <%= render "comments/form", submission: @submission, comment: @comment %>
   <% else %>
-    <p>Per respondre, cal iniciar sessió.</p>
-    <%= button_to "Inicia sessió amb GitHub", "/auth/github", method: :post,
+    <p>Please log in to reply.</p>
+    <%= button_to "Log in with GitHub", "/auth/github", method: :post,
                   form: { data: { turbo: false } }, class: "hn-auth-button" %>
   <% end %>
 
-  <%= link_to "Torna a la publicació", submission_path(@submission) %>
+  <%= link_to "Back to submission", submission_path(@submission) %>
 </section>

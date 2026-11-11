@@ -177,7 +177,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
   test "submit page requires login and shows title URL and text fields" do
     get submit_url
     assert_redirected_to root_url(anchor: "login")
-    assert_equal "Cal iniciar sessió per publicar una submission.", flash[:alert]
+    assert_equal "Please log in to submit a post.", flash[:alert]
 
     follow_redirect!
     assert_response :success
@@ -245,7 +245,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_content
     assert_select "input[name='submission[url]'][value='not a URL']"
-    assert_select "li", text: /URL válida/
+    assert_select "li", text: /valid URL/
   end
 
   test "duplicate URL redirects to the existing submission" do
@@ -262,7 +262,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_response :success
     assert_select ".hn-flash-notice", count: 0
-    assert_select "p", text: "Esta URL ya había sido publicada.", count: 1
+    assert_select "p", text: "This URL has already been submitted.", count: 1
     assert_select "#submission_#{existing_submission.id}", text: /#{Regexp.escape(existing_submission.title)}/
     assert_select "#submission_#{existing_submission.id}", text: /Another title/, count: 0
   end
@@ -441,7 +441,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name='submission[title]'][value='']"
     assert_select "input[name='submission[url]'][value='https://']"
     assert_select "textarea[name='submission[text]']", text: "Draft changes"
-    assert_select "li", text: /URL válida/
+    assert_select "li", text: /valid URL/
     assert_equal original_attributes, @submission.reload.attributes
   end
 

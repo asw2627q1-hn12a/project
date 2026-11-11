@@ -25,15 +25,15 @@
 <p class="submission-back-nav">Deleting this submission permanently deletes all its comments and replies.</p>
 <% end %>
 
-<section id="comments" class="comments-section" aria-label="Comentaris">
+<section id="comments" class="comments-section" aria-label="Comments">
   <% if current_user %>
     <div class="new-comment">
       <%= render "comments/form", submission: @submission, comment: @comment %>
     </div>
   <% else %>
     <div class="comment-login-prompt">
-      <p>Per comentar, cal iniciar sessió.</p>
-      <%= button_to "Inicia sessió amb GitHub", "/auth/github", method: :post,
+      <p>Please log in to comment.</p>
+      <%= button_to "Log in with GitHub", "/auth/github", method: :post,
                     form: { data: { turbo: false } }, class: "hn-auth-button" %>
     </div>
   <% end %>

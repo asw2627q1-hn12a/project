@@ -23,10 +23,10 @@ class CommentVote < ApplicationRecord
     return if comment.nil? || user_id.nil?
     return unless comment.user_id == user_id
 
-    errors.add(:comment, "no pot ser propi")
+    errors.add(:comment, "cannot belong to you")
   end
 
   def cannot_vote_deleted_comment
-    errors.add(:comment, "no pot estar eliminat") if comment&.deleted?
+    errors.add(:comment, "cannot be deleted") if comment&.deleted?
   end
 end

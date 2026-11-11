@@ -3,13 +3,13 @@
 
   <% if comment.errors.any? %>
     <div class="comment-errors">
-      <p>No s'ha pogut publicar el comentari:</p>
+      <p>Could not post the comment:</p>
       <ul>
         <% comment.errors.each do |error| %>
           <li>
             <%= case error.attribute
-                when :body then "El comentari #{error.message}"
-                when :parent then "La resposta #{error.message}"
+                when :body then "Comment #{error.message}"
+                when :parent then "Reply #{error.message}"
                 else error.message
                 end %>
           </li>
@@ -18,12 +18,12 @@
     </div>
   <% end %>
 
-  <p class="comment-current-user">Comentes com a <strong><%= current_user.username %></strong></p>
+  <p class="comment-current-user">Commenting as <strong><%= current_user.username %></strong></p>
 
   <div class="comment-form-field">
-    <%= form.label :body, "Comentari" %>
+    <%= form.label :body, "Comment" %>
     <%= form.text_area :body, rows: 4, required: true %>
   </div>
 
-  <%= form.submit comment.parent_id.present? ? "Publica la resposta" : "Publica el comentari" %>
+  <%= form.submit comment.parent_id.present? ? "Post reply" : "Post comment" %>
 <% end %>

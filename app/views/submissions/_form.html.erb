@@ -1,7 +1,7 @@
 <%= form_with(model: submission, class: "submission-form") do |form| %>
   <% if submission.errors.any? %>
     <div style="color: red">
-      <h2><%= pluralize(submission.errors.count, "error") %> impidieron guardar la submission:</h2>
+      <h2><%= pluralize(submission.errors.count, "error") %> prevented this submission from being saved:</h2>
       <ul>
         <% submission.errors.each do |error| %>
           <li><%= error.full_message %></li>

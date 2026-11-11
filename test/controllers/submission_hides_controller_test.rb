@@ -181,7 +181,7 @@ class SubmissionHidesControllerTest < ActionDispatch::IntegrationTest
       get submission_url(@submission)
       assert_response :success
       assert_select "#submission_#{@submission.id} .score", text: "2 points"
-      assert_select "#comment_#{comment.id} .comment-score", text: "2 punts"
+      assert_select "#comment_#{comment.id} .comment-score", text: "2 points"
       delete submission_hide_url(@submission)
     end
     get news_url

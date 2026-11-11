@@ -10,8 +10,8 @@
         <%= render "comments/preview", comment: comment %>
 
         <p class="recent-comment-context">
-          A la publicació <%= link_to comment.submission.title, submission_path(comment.submission, anchor: "comments") %>
-          · <%= link_to "Fil sencer", submission_comment_path(comment.submission, comment) %>
+          On submission <%= link_to comment.submission.title, submission_path(comment.submission, anchor: "comments") %>
+          · <%= link_to "Full thread", submission_comment_path(comment.submission, comment) %>
         </p>
       </article>
     <% end %>
