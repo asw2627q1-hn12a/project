@@ -14,7 +14,7 @@ class ProfileImagesTest < ApplicationSystemTestCase
 
     visit "/auth/github/callback"
     @user = User.find_by!(uid: "github-images-user")
-    visit edit_user_url(@user)
+    visit user_url(@user)
   end
 
   teardown do

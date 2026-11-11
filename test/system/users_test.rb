@@ -24,15 +24,15 @@ class UsersTest < ApplicationSystemTestCase
   end
 
   test "should update User" do
+    # Com a la captura de l'enunciat, el perfil propi ja és el formulari.
     visit user_url(@user)
-    click_on "edit profile"
 
     fill_in "about:", with: "Hello from the system test"
     fill_in "email:", with: @user.email
     click_on "update"
 
     assert_text "User was successfully updated"
-    assert_text "Hello from the system test"
+    assert_field "about:", with: "Hello from the system test"
   end
 
   test "should destroy User" do

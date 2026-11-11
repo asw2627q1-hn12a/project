@@ -15,7 +15,8 @@ import Cropper from "cropperjs"
 //    i qualsevol exportació d'una generació antiga es descarta.
 export default class extends Controller {
   static targets = [ "input", "stage", "image", "preview" ]
-  static values = { width: Number, height: Number }
+  // previewId: id d'una imatge de fora del controlador (el banner/avatar de dalt del perfil)
+  static values = { width: Number, height: Number, previewId: String }
 
   connect() {
     this.generation = 0
@@ -27,6 +28,11 @@ export default class extends Controller {
   disconnect() {
     this.form?.removeEventListener("submit", this.onSubmit)
     this.destroyCropper()
+  }
+
+  // On es mostra el resultat del retall: un target propi o la imatge amb id previewId.
+  get preview() {
+    return this.hasPreviewTarget ? this.previewTarget : document.getElementById(this.previewIdValue)
   }
 
   // data-action="change->image-cropper#load"
@@ -84,7 +90,7 @@ export default class extends Controller {
     this.destroyCropper()
     this.inputTarget.value = ""
     this.stageTarget.hidden = true
-    if (this.originalPreview) this.previewTarget.src = this.originalPreview
+    if (this.originalPreview && this.preview) this.preview.src = this.originalPreview
   }
 
   // Si el retall no està exportat, frenem l'enviament, l'exportem i el reenviem.
@@ -134,8 +140,10 @@ export default class extends Controller {
     files.items.add(new File([ blob ], name, { type }))
     this.inputTarget.files = files.files
 
-    this.originalPreview ??= this.previewTarget.src
-    this.previewTarget.src = canvas.toDataURL(type)
+    if (this.preview) {
+      this.originalPreview ??= this.preview.src
+      this.preview.src = canvas.toDataURL(type)
+    }
     // Si l'usuari ha tornat a moure la imatge mentre exportàvem, continua "brut"
     // i el submit (o el següent temporitzador) en farà una altra exportació.
     this.exportedVersion = Math.max(this.exportedVersion, version)

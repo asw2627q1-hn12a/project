@@ -108,10 +108,10 @@ body {
   margin: 0 0 6px;
 }
 
+/* Banner a tota l'amplada i avatar rodó centrat que sobresurt per sota (captura de l'enunciat) */
 .hn-profile-images {
   position: relative;
-  margin: 0 0 40px 10px;
-  max-width: 700px;
+  margin: 0 0 56px;
 }
 
 .hn-profile-banner {
@@ -124,52 +124,51 @@ body {
 
 .hn-profile-avatar {
   position: absolute;
-  left: 16px;
-  bottom: -32px;
-  width: 72px;
-  height: 72px;
+  left: 50%;
+  bottom: -48px;
+  transform: translateX(-50%);
+  width: 96px;
+  height: 96px;
   object-fit: cover;
   border: 3px solid #ffffff;
+  border-radius: 50%;
   background-color: #f6f6ef;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-.hn-profile-image-field img {
-  display: block;
-  margin-bottom: 4px;
-  object-fit: cover;
-}
-
-.hn-profile-avatar-preview {
-  width: 48px;
-  height: 48px;
-}
-
-.hn-profile-banner-preview {
-  width: 240px;
-  height: 40px;
+/* Formulari del perfil propi: "delete OR [choose file]" en una línia */
+.hn-profile-image-choice {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .hn-profile-remove {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 3px;
 }
 
-/* Formulari d'edició del perfil: reaprofita .submission-form-field,
-   però amb la columna d'etiquetes prou ampla per a "about:", "avatar:"... */
-.hn-profile-form .submission-form-field {
-  grid-template-columns: 60px minmax(0, 410px);
-  margin-bottom: 8px;
-}
-
-.hn-profile-form .submission-form-field input[type="checkbox"] {
-  width: auto;
+.hn-profile-remove input {
   margin: 0;
 }
 
-.hn-profile-form .submission-form-field input[type="file"] {
-  width: auto;
+.hn-profile-or {
+  color: #828282;
+}
+
+.hn-profile-form textarea {
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.hn-profile-note {
+  display: block;
+  margin: -8px 0 10px;
+  color: #828282;
 }
 
 /* Editor de retall (Cropper.js) */
@@ -214,14 +213,9 @@ body {
   color: #828282;
 }
 
-.hn-profile-form .submission-form-actions,
-.hn-profile-form ~ .submit-back-link {
-  margin-left: 64px;
-}
-
 /* Llistes del perfil: "pastilles" discretes en la línia de HN */
 .hn-profile-lists {
-  margin: 0 0 14px 10px;
+  margin: 6px 0 14px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;

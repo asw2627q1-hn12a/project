@@ -1,0 +1,10 @@
+<%# Llistats del perfil. "hidden" i "upvoted" només els veu el propietari. %>
+<nav class="hn-profile-lists" aria-label="Profile lists">
+  <%= link_to "submissions", submissions_user_path(user) %>
+  <%= link_to "comments", comments_user_path(user) %>
+  <% if own_profile %>
+    <%= link_to "hidden", hidden_submissions_path %>
+    <%= link_to "upvoted submissions", upvoted_user_path(user) %>
+    <%= link_to "upvoted comments", upvoted_comments_user_path(user) %>
+  <% end %>
+</nav>

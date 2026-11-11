@@ -39,8 +39,9 @@ class UsersController < ApplicationController
     @user = User.new
   end
 
-  # GET /users/1/edit
+  # GET /users/1/edit: com a HN (i la captura de l'enunciat), el formulari és al mateix perfil.
   def edit
+    redirect_to @user
   end
 
   # POST /users or /users.json
@@ -65,7 +66,7 @@ class UsersController < ApplicationController
         format.html { redirect_to @user, notice: "User was successfully updated.", status: :see_other }
         format.json { render :show, status: :ok, location: @user }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html { render :show, status: :unprocessable_content }
         format.json { render json: @user.errors, status: :unprocessable_content }
       end
     end

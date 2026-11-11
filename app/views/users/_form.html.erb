@@ -1,3 +1,5 @@
+<%# Formulari del perfil propi, amb la mateixa estructura que la captura de l'enunciat:
+    banner/avatar ("delete OR choose file"), dades, about, llistats i "update". %>
 <%= form_with(model: user, class: "hn-profile-form") do |form| %>
   <% if user.errors.any? %>
     <div class="comment-errors" role="alert">
@@ -9,48 +11,58 @@
     </div>
   <% end %>
 
-  <div class="submission-form-field">
-    <%= form.label :about, "about:" %>
-    <%= form.text_area :about, rows: 6, maxlength: 2000 %>
-  </div>
+  <table class="hn-profile" id="<%= dom_id user %>">
+    <tbody>
+      <% %i[ banner avatar ].each do |kind| %>
+        <% width, height = User::IMAGE_DIMENSIONS.fetch(kind) %>
+        <tr class="hn-profile-image-field">
+          <td class="hn-profile-label"><%= form.label kind, "#{kind}:" %></td>
+          <td data-controller="image-cropper" data-image-cropper-width-value="<%= width %>"
+              data-image-cropper-height-value="<%= height %>" data-image-cropper-preview-id-value="profile_<%= kind %>">
+            <span class="hn-profile-image-choice">
+              <% if custom_profile_image?(user, kind) %>
+                <label class="hn-profile-remove">
+                  <%= form.check_box :"remove_#{kind}" %> delete
+                </label>
+                <span class="hn-profile-or">OR</span>
+              <% end %>
+              <%= form.file_field kind, accept: User::IMAGE_TYPES.join(","),
+                    data: { image_cropper_target: "input", action: "change->image-cropper#load" } %>
+            </span>
 
-  <div class="submission-form-field">
-    <%= form.label :email, "email:" %>
-    <%= form.email_field :email %>
-  </div>
+            <%# Editor de retall: només apareix quan s'ha triat un fitxer. El resultat es veu al banner/avatar de dalt. %>
+            <div class="hn-cropper" data-image-cropper-target="stage" hidden>
+              <div class="hn-cropper-area hn-cropper-area--<%= kind %>">
+                <img data-image-cropper-target="image" alt="">
+              </div>
+              <div class="hn-cropper-tools">
+                <button type="button" data-action="image-cropper#zoomIn" aria-label="Zoom in">+</button>
+                <button type="button" data-action="image-cropper#zoomOut" aria-label="Zoom out">&minus;</button>
+                <button type="button" data-action="image-cropper#cancel">cancel</button>
+              </div>
+              <small>Drag the image to move it and zoom with the mouse wheel or +/&minus;. It will be saved at <%= width %>×<%= height %> px.</small>
+            </div>
+          </td>
+        </tr>
+      <% end %>
 
-  <% %i[ avatar banner ].each do |kind| %>
-    <% width, height = User::IMAGE_DIMENSIONS.fetch(kind) %>
-    <div class="submission-form-field hn-profile-image-field">
-      <%= form.label kind, "#{kind}:" %>
-      <div data-controller="image-cropper" data-image-cropper-width-value="<%= width %>" data-image-cropper-height-value="<%= height %>">
-        <%= image_tag profile_image_url(user, kind), alt: "", class: "hn-profile-#{kind}-preview",
-              data: { image_cropper_target: "preview" } %>
-        <%= form.file_field kind, accept: User::IMAGE_TYPES.join(","),
-              data: { image_cropper_target: "input", action: "change->image-cropper#load" } %>
-
-        <%# Editor de retall: només apareix quan s'ha triat un fitxer (image_cropper_controller.js) %>
-        <div class="hn-cropper" data-image-cropper-target="stage" hidden>
-          <div class="hn-cropper-area hn-cropper-area--<%= kind %>">
-            <img data-image-cropper-target="image" alt="">
-          </div>
-          <div class="hn-cropper-tools">
-            <button type="button" data-action="image-cropper#zoomIn" aria-label="Zoom in">+</button>
-            <button type="button" data-action="image-cropper#zoomOut" aria-label="Zoom out">&minus;</button>
-            <button type="button" data-action="image-cropper#cancel">cancel</button>
-          </div>
-          <small>Drag the image to move it and zoom with the mouse wheel or +/&minus;. It will be saved at <%= width %>×<%= height %> px.</small>
-        </div>
-        <% if custom_profile_image?(user, kind) %>
-          <label class="hn-profile-remove">
-            <%= form.check_box :"remove_#{kind}" %> remove (use the default image)
-          </label>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
-  <div class="submission-form-actions">
-    <%= form.submit "update" %>
-  </div>
+      <%= render "profile_info", user: user %>
+      <tr>
+        <td class="hn-profile-label"><%= form.label :about, "about:" %></td>
+        <td><%= form.text_area :about, rows: 6, cols: 60, maxlength: 2000 %></td>
+      </tr>
+      <tr>
+        <td class="hn-profile-label"><%= form.label :email, "email:" %></td>
+        <td><%= form.email_field :email, size: 40 %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><%= render "profile_lists", user: user, own_profile: true %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><%= form.submit "update", class: "hn-profile-edit" %></td>
+      </tr>
+    </tbody>
+  </table>
 <% end %>

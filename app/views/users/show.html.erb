@@ -1,52 +1,35 @@
 <% content_for :title, @user.username %>
 <% own_profile = @user == current_user %>
+<%# Estils de Cropper.js (vendor/assets/stylesheets/cropper.css), només quan hi ha formulari %>
+<% content_for :head, stylesheet_link_tag("cropper") if own_profile %>
 
+<%# Banner a tota l'amplada i avatar rodó centrat a sobre, com a la captura de l'enunciat.
+    Els ids els fa servir el retall (image_cropper_controller.js) per previsualitzar-hi el resultat. %>
 <div class="hn-profile-images">
-  <%= image_tag profile_image_url(@user, :banner), alt: "Banner de #{@user.username}", class: "hn-profile-banner" %>
-  <%= image_tag profile_image_url(@user, :avatar), alt: "Avatar de #{@user.username}", class: "hn-profile-avatar" %>
+  <%= image_tag profile_image_url(@user, :banner), alt: "Banner de #{@user.username}", class: "hn-profile-banner", id: "profile_banner" %>
+  <%= image_tag profile_image_url(@user, :avatar), alt: "Avatar de #{@user.username}", class: "hn-profile-avatar", id: "profile_avatar" %>
 </div>
 
-<table class="hn-profile" id="<%= dom_id @user %>">
-  <tbody>
-    <tr>
-      <td class="hn-profile-label">user:</td>
-      <td><%= @user.username %></td>
-    </tr>
-    <tr>
-      <td class="hn-profile-label">created:</td>
-      <td><%= l @user.created_at.to_date, format: :long %></td>
-    </tr>
-    <tr>
-      <td class="hn-profile-label">karma:</td>
-      <td><%= @user.karma %></td>
-    </tr>
-    <tr>
-      <td class="hn-profile-label">about:</td>
-      <td class="hn-profile-about"><%= simple_format(@user.about) %></td>
-    </tr>
-    <% if own_profile %>
-      <tr>
-        <td class="hn-profile-label">email:</td>
-        <td><%= @user.email %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<nav class="hn-profile-lists" aria-label="Profile lists">
-  <%= link_to "submissions", submissions_user_path(@user) %>
-  <%= link_to "comments", comments_user_path(@user) %>
-  <% if own_profile %>
-    <%= link_to "hidden", hidden_submissions_path %>
-    <%= link_to "upvoted submissions", upvoted_user_path(@user) %>
-    <%= link_to "upvoted comments", upvoted_comments_user_path(@user) %>
-  <% end %>
-</nav>
-
 <% if own_profile %>
+  <%# Perfil propi: és alhora el formulari d'edició (com a Hacker News) %>
+  <%= render "form", user: @user %>
+
   <div class="hn-profile-actions">
-    <%= link_to "edit profile", edit_user_path(@user), class: "hn-profile-edit" %>
     <%= button_to "delete account", @user, method: :delete, class: "hn-profile-delete",
           form: { data: { turbo_confirm: "Are you sure you want to delete your account?" } } %>
   </div>
+<% else %>
+  <table class="hn-profile" id="<%= dom_id @user %>">
+    <tbody>
+      <%= render "profile_info", user: @user %>
+      <tr>
+        <td class="hn-profile-label">about:</td>
+        <td class="hn-profile-about"><%= simple_format(@user.about) %></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td><%= render "profile_lists", user: @user, own_profile: false %></td>
+      </tr>
+    </tbody>
+  </table>
 <% end %>

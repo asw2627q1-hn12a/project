@@ -26,19 +26,25 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should get edit" do
+  test "edit redirects to the profile, where the owner edits it" do
     sign_in
     get edit_user_url(current_user)
-    assert_response :success
+    assert_redirected_to user_url(current_user)
   end
 
-  test "edit form crops avatar and banner to their final size" do
+  test "own profile is the edit form and crops avatar and banner to their final size" do
     sign_in
-    get edit_user_url(current_user)
+    get user_url(current_user)
 
-    assert_select "[data-controller=image-cropper][data-image-cropper-width-value='400'][data-image-cropper-height-value='400'] input[name='user[avatar]']"
-    assert_select "[data-controller=image-cropper][data-image-cropper-width-value='1200'][data-image-cropper-height-value='200'] input[name='user[banner]']"
-    assert_select "label", text: "about:"
+    assert_select "form.hn-profile-form[action=?]", user_path(current_user) do
+      assert_select "[data-controller=image-cropper][data-image-cropper-width-value='400'][data-image-cropper-height-value='400'][data-image-cropper-preview-id-value='profile_avatar'] input[name='user[avatar]']"
+      assert_select "[data-controller=image-cropper][data-image-cropper-width-value='1200'][data-image-cropper-height-value='200'][data-image-cropper-preview-id-value='profile_banner'] input[name='user[banner]']"
+      assert_select "label", text: "about:"
+      assert_select "textarea[name='user[about]']"
+      assert_select "input[type=submit][value=update]"
+    end
+    assert_select "img#profile_avatar.hn-profile-avatar"
+    assert_select "img#profile_banner.hn-profile-banner"
   end
 
   test "should update user" do
@@ -79,17 +85,17 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_select ".hn-profile", text: /karma:\s*#{submissions(:one).points + 10}/
     assert_select ".hn-profile-about", text: /Hello from user one/
     assert_select ".hn-profile", text: /one@example\.com/, count: 0
-    assert_select "a[href=?]", edit_user_path(@user), count: 0
+    assert_select "form.hn-profile-form", count: 0
+    assert_select "input[name='user[about]'], textarea[name='user[about]']", count: 0
   end
 
-  test "own profile shows email and edit links" do
+  test "own profile shows the email field and the private lists" do
     sign_in
     user = current_user
 
     get user_url(user)
 
-    assert_select ".hn-profile", text: /users@example\.com/
-    assert_select "a[href=?]", edit_user_path(user)
+    assert_select "input[name='user[email]'][value=?]", "users@example.com"
     assert_select "a[href=?]", hidden_submissions_path
   end
 
