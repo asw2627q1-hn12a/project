@@ -19,6 +19,21 @@
     <%= form.email_field :email %>
   </div>
 
+  <% %i[ avatar banner ].each do |kind| %>
+    <div class="submission-form-field hn-profile-image-field">
+      <%= form.label kind %>
+      <div>
+        <%= image_tag profile_image_url(user, kind), alt: "", class: "hn-profile-#{kind}-preview" %>
+        <%= form.file_field kind, accept: User::IMAGE_TYPES.join(",") %>
+        <% if custom_profile_image?(user, kind) %>
+          <label class="hn-profile-remove">
+            <%= form.check_box :"remove_#{kind}" %> eliminar (tornar a la imatge per defecte)
+          </label>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
   <div class="submission-form-actions">
     <%= form.submit "update" %>
   </div>

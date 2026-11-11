@@ -1,6 +1,11 @@
 <% content_for :title, @user.username %>
 <% own_profile = @user == current_user %>
 
+<div class="hn-profile-images">
+  <%= image_tag profile_image_url(@user, :banner), alt: "Banner de #{@user.username}", class: "hn-profile-banner" %>
+  <%= image_tag profile_image_url(@user, :avatar), alt: "Avatar de #{@user.username}", class: "hn-profile-avatar" %>
+</div>
+
 <table class="hn-profile" id="<%= dom_id @user %>">
   <tbody>
     <tr>

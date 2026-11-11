@@ -6,6 +6,21 @@ local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
 
+# Object storage per a l'avatar i el banner (TG-49). Funciona amb qualsevol servei
+# compatible amb S3 (AWS S3, Cloudflare R2, Supabase Storage...). Les credencials
+# arriben per variables d'entorn (a Render: Environment), mai al repo.
+# Si el servei no és AWS, cal STORAGE_ENDPOINT (p. ex. https://<id>.r2.cloudflarestorage.com).
+object_storage:
+  service: S3
+  access_key_id: <%= ENV["STORAGE_ACCESS_KEY_ID"] %>
+  secret_access_key: <%= ENV["STORAGE_SECRET_ACCESS_KEY"] %>
+  region: <%= ENV.fetch("STORAGE_REGION", "auto") %>
+  bucket: <%= ENV["STORAGE_BUCKET"] %>
+<% if ENV["STORAGE_ENDPOINT"].present? %>
+  endpoint: <%= ENV["STORAGE_ENDPOINT"] %>
+  force_path_style: true
+<% end %>
+
 # Use bin/rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
 #   service: S3

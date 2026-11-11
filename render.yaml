@@ -13,6 +13,17 @@ services:
         sync: false
       - key: SOLID_QUEUE_IN_PUMA
         value: "true"
+      # Object storage S3-compatible per a avatars i banners (TG-49)
+      - key: STORAGE_BUCKET
+        sync: false
+      - key: STORAGE_ACCESS_KEY_ID
+        sync: false
+      - key: STORAGE_SECRET_ACCESS_KEY
+        sync: false
+      - key: STORAGE_REGION
+        sync: false
+      - key: STORAGE_ENDPOINT
+        sync: false
     disk:
       name: rails-storage
       mountPath: /rails/storage

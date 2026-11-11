@@ -173,6 +173,57 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
   end
 
+  test "profile shows default avatar and banner when none are uploaded" do
+    get user_url(@user)
+
+    assert_select "img.hn-profile-avatar[src*=?]", "default-avatar"
+    assert_select "img.hn-profile-banner[src*=?]", "default-banner"
+  end
+
+  test "owner uploads and then removes an avatar and a banner" do
+    sign_in
+    user = current_user
+
+    patch user_url(user), params: { user: {
+      avatar: fixture_file_upload("avatar.png", "image/png"),
+      banner: fixture_file_upload("avatar.png", "image/png")
+    } }
+
+    assert_redirected_to user_url(user)
+    assert user.reload.avatar.attached?
+    assert user.banner.attached?
+    get user_url(user)
+    assert_select "img.hn-profile-avatar[src*=?]", "/rails/active_storage/"
+
+    patch user_url(user), params: { user: { remove_avatar: "1", remove_banner: "1" } }
+
+    assert_redirected_to user_url(user)
+    assert_not user.reload.avatar.attached?
+    assert_not user.banner.attached?
+    get user_url(user)
+    assert_select "img.hn-profile-avatar[src*=?]", "default-avatar"
+  end
+
+  test "non image avatar is rejected" do
+    sign_in
+    user = current_user
+
+    patch user_url(user), params: { user: { avatar: fixture_file_upload("not_an_image.txt", "text/plain") } }
+
+    assert_response :unprocessable_content
+    assert_select "[role=alert]", text: /PNG, JPEG, GIF o WebP/
+    assert_not user.reload.avatar.attached?
+  end
+
+  test "users cannot change another user's avatar" do
+    sign_in
+
+    patch user_url(@user), params: { user: { avatar: fixture_file_upload("avatar.png", "image/png") } }
+
+    assert_redirected_to root_url
+    assert_not @user.reload.avatar.attached?
+  end
+
   private
 
   def sign_in
