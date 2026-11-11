@@ -25,19 +25,21 @@ class UsersTest < ApplicationSystemTestCase
 
   test "should update User" do
     visit user_url(@user)
-    click_on "Edit this user", match: :first
+    click_on "edit profile"
 
+    fill_in "About", with: "Hello from the system test"
     fill_in "Email", with: @user.email
-    fill_in "Username", with: @user.username
-    click_on "Update User"
+    click_on "update"
 
     assert_text "User was successfully updated"
-    click_on "Back"
+    assert_text "Hello from the system test"
   end
 
   test "should destroy User" do
     visit user_url(@user)
-    click_on "Destroy this user", match: :first
+    accept_confirm do
+      click_on "delete account"
+    end
 
     assert_text "User was successfully destroyed"
   end
