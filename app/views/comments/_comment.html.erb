@@ -1,3 +1,4 @@
+<% if local_assigns[:force_visible] || comment.visible_in_thread? %>
 <article id="<%= dom_id(comment) %>" class="comment">
   <%= render "comments/preview", comment: comment %>
 
@@ -16,10 +17,12 @@
     <% end %>
   </div>
 
-  <% if comment.replies.any? %>
+  <% visible_replies = comment.replies.includes(:user).order(:created_at).select(&:visible_in_thread?) %>
+  <% if visible_replies.any? %>
     <div class="comment-replies">
-      <%= render partial: "comments/comment", collection: comment.replies.includes(:user).order(:created_at),
+      <%= render partial: "comments/comment", collection: visible_replies,
                  as: :comment, locals: { submission: submission } %>
     </div>
   <% end %>
 </article>
+<% end %>

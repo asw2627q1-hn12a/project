@@ -497,6 +497,18 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Keep me", other_comment.reload.body
   end
 
+  test "comment counts ignore deleted comments" do
+    submission = Submission.create!(title: "Count deleted", url: "https://count.example/deleted", user: users(:one), points: 40)
+    Comment.create!(submission: submission, user: users(:two), body: "Viu")
+    Comment.create!(submission: submission, user: users(:two), body: "Esborrat").soft_delete!
+
+    get root_url
+    assert_select "a[href=?]", submission_path(submission, anchor: "comments"), text: "1 comment"
+
+    get submission_url(submission)
+    assert_select ".submission-heading-meta a[href=?]", submission_path(submission, anchor: "comments"), text: "1 comment"
+  end
+
   private
 
   def sign_in_as_owner
