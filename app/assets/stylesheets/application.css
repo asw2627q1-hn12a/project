@@ -88,6 +88,44 @@ body {
   padding: 10px 0 16px 0;
 }
 
+/* Perfil d'usuari */
+.hn-profile {
+  margin: 0 0 12px 10px;
+  border-collapse: collapse;
+}
+
+.hn-profile td {
+  padding: 2px 6px 2px 0;
+  vertical-align: top;
+}
+
+.hn-profile-label {
+  color: #828282;
+  white-space: nowrap;
+}
+
+.hn-profile-about p {
+  margin: 0 0 6px;
+}
+
+.hn-profile-actions {
+  margin-left: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hn-profile-actions a,
+.hn-profile-delete {
+  color: #000000;
+  font-size: 10pt;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
 /* Submit */
 .submit-page {
   padding: 8px 30px 0;

@@ -1,14 +1,38 @@
-<p style="color: green"><%= notice %></p>
+<% content_for :title, @user.username %>
+<% own_profile = @user == current_user %>
 
-<%= render @user %>
+<table class="hn-profile" id="<%= dom_id @user %>">
+  <tbody>
+    <tr>
+      <td class="hn-profile-label">user:</td>
+      <td><%= @user.username %></td>
+    </tr>
+    <tr>
+      <td class="hn-profile-label">created:</td>
+      <td><%= l @user.created_at.to_date, format: :long %></td>
+    </tr>
+    <tr>
+      <td class="hn-profile-label">karma:</td>
+      <td><%= @user.karma %></td>
+    </tr>
+    <tr>
+      <td class="hn-profile-label">about:</td>
+      <td class="hn-profile-about"><%= simple_format(@user.about) %></td>
+    </tr>
+    <% if own_profile %>
+      <tr>
+        <td class="hn-profile-label">email:</td>
+        <td><%= @user.email %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
 
-<% if current_user == @user %>
-  <p><%= link_to "hidden", hidden_submissions_path %></p>
+<% if own_profile %>
+  <div class="hn-profile-actions">
+    <%= link_to "edit profile", edit_user_path(@user) %>
+    <%= link_to "hidden", hidden_submissions_path %>
+    <%= button_to "delete account", @user, method: :delete, class: "hn-profile-delete",
+          form: { data: { turbo_confirm: "Segur que vols eliminar el teu compte?" } } %>
+  </div>
 <% end %>
-
-<div>
-  <%= link_to "Edit this user", edit_user_path(@user) %> |
-  <%= link_to "Back to users", users_path %>
-
-  <%= button_to "Destroy this user", @user, method: :delete %>
-</div>

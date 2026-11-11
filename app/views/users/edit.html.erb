@@ -1,12 +1,9 @@
-<% content_for :title, "Editing user" %>
+<% content_for :title, "Edit profile" %>
 
-<h1>Editing user</h1>
+<section class="submit-page">
+  <h1>Edit profile: <%= @user.username %></h1>
 
-<%= render "form", user: @user %>
+  <%= render "form", user: @user %>
 
-<br>
-
-<div>
-  <%= link_to "Show this user", @user %> |
-  <%= link_to "Back to users", users_path %>
-</div>
+  <p class="submit-back-link"><%= link_to "back to profile", @user %></p>
+</section>
