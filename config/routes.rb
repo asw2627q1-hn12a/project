@@ -35,6 +35,8 @@ Rails.application.routes.draw do
     member do
       get :submissions
       get :comments
+      get :favorites
+      get :favorite_comments
       get :upvoted
       get :upvoted_comments
     end

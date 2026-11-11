@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   PRIVATE_LISTS = %i[ upvoted upvoted_comments ].freeze
 
-  before_action :set_user, only: %i[ show edit update destroy submissions comments ] + PRIVATE_LISTS
+  before_action :set_user, only: %i[ show edit update destroy submissions comments favorites favorite_comments ] + PRIVATE_LISTS
   before_action :require_login, only: %i[ new create edit update destroy ] + PRIVATE_LISTS
   before_action :require_owner, only: %i[ edit update destroy ] + PRIVATE_LISTS
 
@@ -22,6 +22,18 @@ class UsersController < ApplicationController
   # GET /users/1/comments (públic)
   def comments
     @comments = @user.comments.where(deleted_at: nil).includes(:user, :submission, parent: :user).order(created_at: :desc)
+  end
+
+  # GET /users/1/favorites (públic, com a HN: "publicly visible"). Primer els darrers que s'han marcat.
+  def favorites
+    @submissions = @user.favorite_submissions.visible_to(current_user).with_comments_count.includes(:user)
+      .order(SubmissionFavorite.arel_table[:created_at].desc)
+  end
+
+  # GET /users/1/favorite_comments (públic)
+  def favorite_comments
+    @comments = @user.favorite_comments.where(deleted_at: nil).includes(:user, :submission, parent: :user)
+      .order(CommentFavorite.arel_table[:created_at].desc)
   end
 
   # GET /users/1/upvoted (només el propietari)

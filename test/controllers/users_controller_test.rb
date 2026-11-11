@@ -177,11 +177,36 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", submissions_user_path(@user)
     assert_select "a[href=?]", comments_user_path(@user)
     assert_select "a[href=?]", upvoted_user_path(@user), count: 0
+    assert_select "a[href=?]", favorites_user_path(@user)
+    assert_select "a[href=?]", favorite_comments_user_path(@user)
 
     sign_in
     get user_url(current_user)
     assert_select "a[href=?]", upvoted_user_path(current_user)
     assert_select "a[href=?]", upvoted_comments_user_path(current_user)
+  end
+
+  test "anyone can see a user's favorite submissions and comments, newest favorite first" do
+    older = Submission.create!(title: "Older favorite", user: users(:two), points: 50)
+    newer = Submission.create!(title: "Newer favorite", user: users(:two))
+    comment = Comment.create!(submission: older, user: users(:two), body: "Favorite comment")
+    deleted = Comment.create!(submission: older, user: users(:two), body: "Deleted favorite", deleted_at: Time.current)
+    SubmissionFavorite.create!(user: @user, submission: older, created_at: 2.days.ago)
+    SubmissionFavorite.create!(user: @user, submission: newer, created_at: 1.day.ago)
+    CommentFavorite.create!(user: @user, comment: comment)
+    CommentFavorite.create!(user: @user, comment: deleted)
+
+    get favorites_user_url(@user)
+    assert_response :success
+    assert_select "h1", text: "#{@user.username}'s favorite submissions"
+    assert_select ".titleline a" do |links|
+      assert_equal [ "Newer favorite", "Older favorite" ], links.map(&:text)
+    end
+
+    get favorite_comments_user_url(@user)
+    assert_response :success
+    assert_select ".comment-body", text: /Favorite comment/
+    assert_select ".comment-body", text: /Deleted favorite/, count: 0
   end
 
   test "owner sees upvoted submissions and comments" do
