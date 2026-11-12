@@ -69,7 +69,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "tr.athing" do |rows|
-      expected_ids = Submission.order(created_at: :desc).map { |submission| "submission_#{submission.id}" }
+      expected_ids = Submission.order(created_at: :desc, id: :desc).map { |submission| "submission_#{submission.id}" }
       assert_equal expected_ids, rows.map { |row| row["id"] }
     end
   end

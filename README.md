@@ -48,7 +48,7 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 | --- | --- |
 | Ruby | 4.0.7 (veure `.ruby-version`) |
 | Rails | 8.1 |
-| Base de dades | SQLite 3 |
+| Base de dades | PostgreSQL extern a producció; SQLite 3 en local (CI amb tots dos) |
 | Frontend | Hotwire (Turbo + Stimulus), Importmap, Propshaft |
 | Autenticació | `omniauth` + `omniauth-github` |
 | Cua / cache / cable | Solid Queue, Solid Cache, Solid Cable |
@@ -125,7 +125,10 @@ L'aplicació es desplega a **Render** amb el `Dockerfile` del repositori, segons
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (OAuth App de producció, amb callback `https://asw2627q1-hn12-project.onrender.com/auth/github/callback`)
 - `SOLID_QUEUE_IN_PUMA=true`
 - Object storage (avatars i banners, servei compatible amb S3): `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`, `STORAGE_REGION` i, si no és AWS, `STORAGE_ENDPOINT`. Sense `STORAGE_BUCKET` les imatges es guarden al disc local de Render.
-- Disc persistent muntat a `/rails/storage` per a les bases de dades SQLite.
+- `DATABASE_URL`: connexió a PostgreSQL extern. Cache, queue i cable també s'emmagatzemen al servidor PostgreSQL, amb bases auxiliars.
+- Les fotos requereixen object storage: el disc del servei Free no conserva fitxers entre desplegaments. Per a R2: `AWS_REQUEST_CHECKSUM_CALCULATION=WHEN_REQUIRED`.
+
+La preparació, conservació de dades, importació de SQLite i verificació de persistència s'expliquen a [docs/postgresql.md](docs/postgresql.md). El canvi de connexió no migra dades automàticament. PostgreSQL Free de Render caduca als 30 dies.
 
 Health check: `GET /up`.
 

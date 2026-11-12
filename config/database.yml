@@ -1,4 +1,17 @@
-# SQLite. Versions 3.8.0 and up are supported.
+<%
+require "uri"
+production_urls = { "primary" => ENV["DATABASE_URL"] }
+%w[cache queue cable].each do |name|
+  url = ENV["#{name.upcase}_DATABASE_URL"]
+  if url.blank? && ENV["DATABASE_URL"].to_s.match?(%r{\Apostgres(?:ql)?://})
+    uri = URI.parse(ENV["DATABASE_URL"])
+    uri.path = "#{uri.path}_#{name}"
+    url = uri.to_s
+  end
+  production_urls[name] = url
+end
+%>
+# SQLite locally; DATABASE_URL can select PostgreSQL for tests.
 #   gem install sqlite3
 #
 #   Ensure the SQLite 3 gem is defined in your Gemfile
@@ -21,21 +34,24 @@ test:
   database: storage/test.sqlite3
 
 
-# Store production database in the storage/ directory, which by default
-# is mounted as a persistent Docker volume in config/deploy.yml.
+# All production databases live on the external PostgreSQL server.
+# Auxiliary URLs default to the primary database name plus their suffix.
 production:
-  primary:
-    <<: *default
-    database: storage/production.sqlite3
+  primary: &production
+    adapter: postgresql
+    encoding: unicode
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS", 5) %>
+    url: <%= production_urls["primary"].to_json %>
+    seeds: false
   cache:
-    <<: *default
-    database: storage/production_cache.sqlite3
+    <<: *production
+    url: <%= production_urls["cache"].to_json %>
     migrations_paths: db/cache_migrate
   queue:
-    <<: *default
-    database: storage/production_queue.sqlite3
+    <<: *production
+    url: <%= production_urls["queue"].to_json %>
     migrations_paths: db/queue_migrate
   cable:
-    <<: *default
-    database: storage/production_cable.sqlite3
+    <<: *production
+    url: <%= production_urls["cable"].to_json %>
     migrations_paths: db/cable_migrate
