@@ -5,6 +5,8 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 
 🔗 **Aplicació desplegada:** https://asw2627q1-hn12-project.onrender.com
 
+🔗 **Projecte Taiga:** https://tree.taiga.io/project/hectorgutierrezz-assw2627q1_hn12a
+
 ## Equip
 
 | Membre |
