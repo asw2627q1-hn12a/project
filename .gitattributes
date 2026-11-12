@@ -1,5 +1,9 @@
 # See https://git-scm.com/docs/gitattributes for more about git attribute files.
 
+# Docker/Linux requires LF scripts and a reproducible Bundler lockfile on Windows.
+bin/* text eol=lf
+Gemfile.lock text eol=lf
+
 # Mark the database schema as having been generated.
 db/schema.rb linguist-generated
 

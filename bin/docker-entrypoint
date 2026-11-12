@@ -8,6 +8,12 @@ fi
 
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  : "${DATABASE_URL:?Set DATABASE_URL to the external PostgreSQL database URL}"
+  case "$DATABASE_URL" in
+    postgres://*|postgresql://*) ;;
+    *) echo "DATABASE_URL must use PostgreSQL in production" >&2; exit 1 ;;
+  esac
+  : "${STORAGE_BUCKET:?Set STORAGE_BUCKET to persist uploaded images in object storage}"
   ./bin/rails db:prepare
 fi
 

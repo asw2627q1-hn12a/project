@@ -1,8 +1,14 @@
+databases:
+  - name: hn12a-postgres
+    plan: free
+    databaseName: hn12a
+    user: hn12a
+
 services:
   - type: web
     name: asw2627q1-hn12-project
     runtime: docker
-    plan: starter
+    plan: free
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /up
@@ -13,6 +19,10 @@ services:
         sync: false
       - key: SOLID_QUEUE_IN_PUMA
         value: "true"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hn12a-postgres
+          property: connectionString
       # Object storage S3-compatible per a avatars i banners (TG-49)
       - key: STORAGE_BUCKET
         sync: false
@@ -24,7 +34,5 @@ services:
         sync: false
       - key: STORAGE_ENDPOINT
         sync: false
-    disk:
-      name: rails-storage
-      mountPath: /rails/storage
-      sizeGB: 1
+      - key: AWS_REQUEST_CHECKSUM_CALCULATION
+        value: WHEN_REQUIRED

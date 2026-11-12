@@ -27,7 +27,7 @@ class UsersController < ApplicationController
   # GET /users/1/favorites (públic, com a HN: "publicly visible"). Primer els darrers que s'han marcat.
   def favorites
     @submissions = @user.favorite_submissions.visible_to(current_user).with_comments_count.includes(:user)
-      .order(SubmissionFavorite.arel_table[:created_at].desc)
+      .order(Arel.sql("MAX(submission_favorites.created_at) DESC"))
   end
 
   # GET /users/1/favorite_comments (públic)

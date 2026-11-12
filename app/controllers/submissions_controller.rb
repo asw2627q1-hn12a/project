@@ -33,7 +33,7 @@ class SubmissionsController < ApplicationController
 
   # GET /newest
   def newest
-    @submissions = Submission.visible_to(current_user).with_comments_count.includes(:user).order(created_at: :desc)
+    @submissions = Submission.visible_to(current_user).with_comments_count.includes(:user).order(created_at: :desc, id: :desc)
     render :index
   end
 

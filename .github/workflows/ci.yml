@@ -54,14 +54,25 @@ jobs:
         run: bin/rubocop -f github
 
   test:
+    name: ${{ matrix.database == 'postgresql' && 'test' || 'test_sqlite' }}
     runs-on: ubuntu-latest
-
-    # services:
-    #  redis:
-    #    image: redis
-    #    ports:
-    #      - 6379:6379
-    #    options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    strategy:
+      matrix:
+        database: [sqlite, postgresql]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: hn12a_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d hn12a_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Check runner tools
         run: |
@@ -83,13 +94,13 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          # REDIS_URL: redis://localhost:6379/0
+          DATABASE_URL: ${{ matrix.database == 'postgresql' && 'postgresql://postgres:postgres@127.0.0.1:5432/hn12a_test' || '' }}
         run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: screenshots
+          name: screenshots-${{ matrix.database }}
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
