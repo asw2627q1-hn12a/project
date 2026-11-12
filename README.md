@@ -71,6 +71,8 @@ bin/setup --skip-server   # instal·la gems i prepara la base de dades
 bin/rails db:seed         # (opcional) carrega usuaris i submissions de prova
 ```
 
+Els seeds afegeixen els exemples que falten sense esborrar dades ni modificar els registres existents. Es poden tornar a executar sense duplicar els mateixos exemples. Això no substitueix la persistència de la base de dades a producció.
+
 ### 3. Variables d'entorn (login amb GitHub)
 
 Crea una **OAuth App** a GitHub (*Settings → Developer settings → OAuth Apps*) amb:
