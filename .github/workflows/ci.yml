@@ -94,7 +94,7 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: ${{ matrix.database == 'postgresql' && 'postgresql://postgres:postgres@127.0.0.1:5432/hn12a_test' || '' }}
+          DATABASE_URL: ${{ matrix.database == 'postgresql' && 'postgresql://postgres:postgres@127.0.0.1:5432/hn12a_test' || 'sqlite3:storage/test.sqlite3' }}
         run: bin/rails db:test:prepare test test:system
 
       - name: Keep screenshots from failed system tests
