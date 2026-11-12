@@ -16,7 +16,7 @@ class Submission < ApplicationRecord
   }
   scope :with_comments_count, -> {
     left_joins(:comments)
-      .select("submissions.*, COUNT(comments.id) AS comments_count")
+      .select("submissions.*, COUNT(comments.id) - COUNT(comments.deleted_at) AS comments_count")
       .group("submissions.id")
   }
 
@@ -48,7 +48,7 @@ class Submission < ApplicationRecord
 
   # Nombre de comentaris: usa el recompte agrupat de la BD si ve de with_comments_count
   def comments_total
-    has_attribute?(:comments_count) ? self[:comments_count] : comments.count
+    has_attribute?(:comments_count) ? self[:comments_count] : comments.where(deleted_at: nil).count
   end
 
   private

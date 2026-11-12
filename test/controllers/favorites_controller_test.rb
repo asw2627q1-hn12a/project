@@ -134,7 +134,7 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
       post path
       assert_response :gone
     end
-    get submission_url(@submission)
+    get submission_comment_url(@submission, @comment)
     assert_select "form[action=?]", path do
       assert_select "input[name=_method][value=delete]"
       assert_select "button[aria-label=favorite][aria-pressed=true]"

@@ -418,6 +418,34 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#comment_#{deleted_root.id}", 0
   end
 
+    test "hides deleted comments without visible replies at any depth" do
+    leaf = Comment.create!(submission: @submission, user: users(:one), body: "Fulla esborrada")
+    parent = Comment.create!(submission: @submission, user: users(:one), body: "Pare esborrat")
+    reply = Comment.create!(submission: @submission, user: users(:two), body: "Resposta viva", parent: parent)
+    chain_root = Comment.create!(submission: @submission, user: users(:one), body: "Arrel esborrada")
+    chain_leaf = Comment.create!(submission: @submission, user: users(:two), body: "Fulla de la cadena", parent: chain_root)
+    [ leaf, parent, chain_root, chain_leaf ].each(&:soft_delete!)
+
+    get submission_url(@submission)
+
+    assert_response :success
+    assert_select "#comment_#{leaf.id}", 0
+    assert_select "#comment_#{parent.id} .comment-deleted", text: "[deleted]"
+    assert_select "#comment_#{parent.id} #comment_#{reply.id} .comment-body", text: "Resposta viva"
+    assert_select "#comment_#{chain_root.id}", 0
+    assert_select "#comment_#{chain_leaf.id}", 0
+  end
+
+  test "a deleted comment without replies is still shown on its own thread page" do
+    comment = Comment.create!(submission: @submission, user: users(:one), body: "Esborrat sense respostes")
+    comment.soft_delete!
+
+    get submission_comment_url(@submission, comment)
+
+    assert_response :success
+    assert_select "#comment_#{comment.id} .comment-deleted", text: "[deleted]"
+  end
+
   private
 
   def sign_in

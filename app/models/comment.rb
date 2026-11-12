@@ -19,6 +19,11 @@ class Comment < ApplicationRecord
     update_columns(body: "", deleted_at: timestamp, updated_at: timestamp)
   end
 
+  # Un comentari esborrat només es mostra si té alguna resposta visible (a qualsevol nivell)
+  def visible_in_thread?
+    !deleted? || replies.any?(&:visible_in_thread?)
+  end
+
   private
     def parent_belongs_to_submission
       return if parent.nil? || parent.submission_id == submission_id
