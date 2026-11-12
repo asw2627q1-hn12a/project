@@ -26,10 +26,25 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should get edit" do
+  test "edit redirects to the profile, where the owner edits it" do
     sign_in
     get edit_user_url(current_user)
-    assert_response :success
+    assert_redirected_to user_url(current_user)
+  end
+
+  test "own profile is the edit form and crops avatar and banner to their final size" do
+    sign_in
+    get user_url(current_user)
+
+    assert_select "form.hn-profile-form[action=?]", user_path(current_user) do
+      assert_select "[data-controller=image-cropper][data-image-cropper-width-value='400'][data-image-cropper-height-value='400'][data-image-cropper-preview-id-value='profile_avatar'] input[name='user[avatar]']"
+      assert_select "[data-controller=image-cropper][data-image-cropper-width-value='1200'][data-image-cropper-height-value='200'][data-image-cropper-preview-id-value='profile_banner'] input[name='user[banner]']"
+      assert_select "label", text: "about:"
+      assert_select "textarea[name='user[about]']"
+      assert_select "input[type=submit][value=update]"
+    end
+    assert_select "img#profile_avatar.hn-profile-avatar"
+    assert_select "img#profile_banner.hn-profile-banner"
   end
 
   test "should update user" do
@@ -70,17 +85,17 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_select ".hn-profile", text: /karma:\s*#{submissions(:one).points + 10}/
     assert_select ".hn-profile-about", text: /Hello from user one/
     assert_select ".hn-profile", text: /one@example\.com/, count: 0
-    assert_select "a[href=?]", edit_user_path(@user), count: 0
+    assert_select "form.hn-profile-form", count: 0
+    assert_select "input[name='user[about]'], textarea[name='user[about]']", count: 0
   end
 
-  test "own profile shows email and edit links" do
+  test "own profile shows the email field and the private lists" do
     sign_in
     user = current_user
 
     get user_url(user)
 
-    assert_select ".hn-profile", text: /users@example\.com/
-    assert_select "a[href=?]", edit_user_path(user)
+    assert_select "input[name='user[email]'][value=?]", "users@example.com"
     assert_select "a[href=?]", hidden_submissions_path
   end
 
@@ -162,11 +177,36 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", submissions_user_path(@user)
     assert_select "a[href=?]", comments_user_path(@user)
     assert_select "a[href=?]", upvoted_user_path(@user), count: 0
+    assert_select "a[href=?]", favorites_user_path(@user)
+    assert_select "a[href=?]", favorite_comments_user_path(@user)
 
     sign_in
     get user_url(current_user)
     assert_select "a[href=?]", upvoted_user_path(current_user)
     assert_select "a[href=?]", upvoted_comments_user_path(current_user)
+  end
+
+  test "anyone can see a user's favorite submissions and comments, newest favorite first" do
+    older = Submission.create!(title: "Older favorite", user: users(:two), points: 50)
+    newer = Submission.create!(title: "Newer favorite", user: users(:two))
+    comment = Comment.create!(submission: older, user: users(:two), body: "Favorite comment")
+    deleted = Comment.create!(submission: older, user: users(:two), body: "Deleted favorite", deleted_at: Time.current)
+    SubmissionFavorite.create!(user: @user, submission: older, created_at: 2.days.ago)
+    SubmissionFavorite.create!(user: @user, submission: newer, created_at: 1.day.ago)
+    CommentFavorite.create!(user: @user, comment: comment)
+    CommentFavorite.create!(user: @user, comment: deleted)
+
+    get favorites_user_url(@user)
+    assert_response :success
+    assert_select "h1", text: "#{@user.username}'s favorite submissions"
+    assert_select ".titleline a" do |links|
+      assert_equal [ "Newer favorite", "Older favorite" ], links.map(&:text)
+    end
+
+    get favorite_comments_user_url(@user)
+    assert_response :success
+    assert_select ".comment-body", text: /Favorite comment/
+    assert_select ".comment-body", text: /Deleted favorite/, count: 0
   end
 
   test "owner sees upvoted submissions and comments" do
@@ -209,6 +249,70 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_url
     get upvoted_comments_user_url(@user)
     assert_redirected_to root_url
+  end
+
+  test "profile shows default avatar and banner when none are uploaded" do
+    get user_url(@user)
+
+    assert_select "img.hn-profile-avatar[src*=?]", "default-avatar"
+    assert_select "img.hn-profile-banner[src*=?]", "default-banner"
+  end
+
+  test "owner uploads and then removes an avatar and a banner" do
+    sign_in
+    user = current_user
+
+    patch user_url(user), params: { user: {
+      avatar: fixture_file_upload("avatar.png", "image/png"),
+      banner: fixture_file_upload("avatar.png", "image/png")
+    } }
+
+    assert_redirected_to user_url(user)
+    assert user.reload.avatar.attached?
+    assert user.banner.attached?
+    get user_url(user)
+    assert_select "img.hn-profile-avatar[src*=?]", "/rails/active_storage/"
+
+    patch user_url(user), params: { user: { remove_avatar: "1", remove_banner: "1" } }
+
+    assert_redirected_to user_url(user)
+    assert_not user.reload.avatar.attached?
+    assert_not user.banner.attached?
+    get user_url(user)
+    assert_select "img.hn-profile-avatar[src*=?]", "default-avatar"
+  end
+
+  test "non image avatar is rejected" do
+    sign_in
+    user = current_user
+
+    patch user_url(user), params: { user: { avatar: fixture_file_upload("not_an_image.txt", "text/plain") } }
+
+    assert_response :unprocessable_content
+    assert_select "[role=alert]", text: /PNG, JPEG, GIF or WebP/
+    assert_not user.reload.avatar.attached?
+  end
+
+  test "an existing non image blob attached by signed_id is rejected" do
+    sign_in
+    user = current_user
+    blob = ActiveStorage::Blob.create_and_upload!(io: StringIO.new("a" * 3.megabytes), filename: "big.txt", content_type: "text/plain")
+
+    patch user_url(user), params: { user: { avatar: blob.signed_id } }
+
+    assert_response :unprocessable_content
+    assert_select "[role=alert]", text: /PNG, JPEG, GIF or WebP/
+    assert_select "[role=alert]", text: /2 MB/
+    assert_not user.reload.avatar.attached?
+  end
+
+  test "users cannot change another user's avatar" do
+    sign_in
+
+    patch user_url(@user), params: { user: { avatar: fixture_file_upload("avatar.png", "image/png") } }
+
+    assert_redirected_to root_url
+    assert_not @user.reload.avatar.attached?
   end
 
   private

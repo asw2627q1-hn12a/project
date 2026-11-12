@@ -64,12 +64,12 @@ class SubmissionsTest < ApplicationSystemTestCase
     click_button "submit"
     assert_text "Submission was successfully created"
 
-    visit edit_user_url(User.find_by!(uid: "github-submissions-system"))
-    fill_in "Email", with: "invalid-email"
+    visit user_url(User.find_by!(uid: "github-submissions-system"))
+    fill_in "email:", with: "invalid-email"
     click_button "update"
     assert_equal "Please enter a valid email address.", find("#user_email").evaluate_script("this.validationMessage")
 
-    fill_in "Email", with: "english-validation@example.test"
+    fill_in "email:", with: "english-validation@example.test"
     click_button "update"
     assert_text "User was successfully updated"
   end

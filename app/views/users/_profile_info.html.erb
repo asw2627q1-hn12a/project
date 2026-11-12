@@ -1,0 +1,12 @@
+<tr>
+  <td class="hn-profile-label">user:</td>
+  <td><%= user.username %></td>
+</tr>
+<tr>
+  <td class="hn-profile-label">created:</td>
+  <td><%= l user.created_at.to_date, format: :long %></td>
+</tr>
+<tr>
+  <td class="hn-profile-label">karma:</td>
+  <td><%= user.karma %></td>
+</tr>

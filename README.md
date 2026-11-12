@@ -120,6 +120,7 @@ L'aplicació es desplega a **Render** amb el `Dockerfile` del repositori, segons
 - `RAILS_MASTER_KEY` (configurada manualment a Render)
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` (OAuth App de producció, amb callback `https://asw2627q1-hn12-project.onrender.com/auth/github/callback`)
 - `SOLID_QUEUE_IN_PUMA=true`
+- Object storage (avatars i banners, servei compatible amb S3): `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`, `STORAGE_REGION` i, si no és AWS, `STORAGE_ENDPOINT`. Sense `STORAGE_BUCKET` les imatges es guarden al disc local de Render.
 - Disc persistent muntat a `/rails/storage` per a les bases de dades SQLite.
 
 Health check: `GET /up`.

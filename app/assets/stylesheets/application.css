@@ -108,34 +108,176 @@ body {
   margin: 0 0 6px;
 }
 
+/* Banner a tota l'amplada i avatar rodó centrat que sobresurt per sota (captura de l'enunciat) */
+.hn-profile-images {
+  position: relative;
+  margin: 0 0 56px;
+}
+
+.hn-profile-banner {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  background-color: #f6f6ef;
+}
+
+.hn-profile-avatar {
+  position: absolute;
+  left: 50%;
+  bottom: -48px;
+  transform: translateX(-50%);
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background-color: #f6f6ef;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Formulari del perfil propi: "delete OR [choose file]" en una línia */
+.hn-profile-image-choice {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.hn-profile-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.hn-profile-remove input {
+  margin: 0;
+}
+
+.hn-profile-or {
+  color: #828282;
+}
+
+.hn-profile-form textarea {
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.hn-profile-note {
+  display: block;
+  margin: -8px 0 10px;
+  color: #828282;
+}
+
+/* Editor de retall (Cropper.js) */
+.hn-cropper {
+  margin: 6px 0;
+}
+
+.hn-cropper-area {
+  max-width: 410px;
+  background-color: #e8e8e0;
+}
+
+.hn-cropper-area--avatar {
+  width: 260px;
+  height: 260px;
+}
+
+.hn-cropper-area--banner {
+  height: 160px;
+}
+
+/* Cropper.js necessita que la imatge original tingui amplada màxima 100% */
+.hn-cropper-area img {
+  display: block;
+  max-width: 100%;
+}
+
+.hn-cropper-tools {
+  display: flex;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.hn-cropper-tools button {
+  min-width: 26px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hn-cropper small {
+  display: block;
+  color: #828282;
+}
+
+/* Llistes del perfil: "pastilles" discretes en la línia de HN */
 .hn-profile-lists {
-  margin: 0 0 12px 10px;
+  margin: 6px 0 14px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 6px;
 }
 
 .hn-profile-lists a {
+  padding: 3px 9px;
+  border: 1px solid #d8d8cc;
+  border-radius: 12px;
+  background-color: #ffffff;
   color: #000000;
-  font-size: 10pt;
+  font-size: 9pt;
+  text-decoration: none;
 }
 
+.hn-profile-lists a:hover {
+  border-color: #ff6600;
+  color: #ff6600;
+}
+
+/* Accions del perfil propi */
 .hn-profile-actions {
-  margin-left: 10px;
+  margin: 0 0 8px 10px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
 }
 
-.hn-profile-actions a,
+.hn-profile-actions form {
+  margin: 0;
+}
+
+.hn-profile-edit,
 .hn-profile-delete {
-  color: #000000;
-  font-size: 10pt;
-  text-decoration: underline;
-  background: none;
-  border: 0;
-  padding: 0;
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 9pt;
+  line-height: 1.2;
+  text-decoration: none;
   cursor: pointer;
+}
+
+.hn-profile-edit {
+  background-color: #ff6600;
+  color: #ffffff;
+}
+
+.hn-profile-edit:hover {
+  background-color: #e65c00;
+}
+
+.hn-profile-delete {
+  background-color: transparent;
+  border-color: #c9a0a0;
+  color: #a33;
+}
+
+.hn-profile-delete:hover {
+  background-color: #fbeaea;
 }
 
 /* Submit */

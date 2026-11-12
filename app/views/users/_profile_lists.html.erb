@@ -1,0 +1,15 @@
+<%# Llistats del perfil. "hidden" i "upvoted" només els veu el propietari; els favorits són públics. %>
+<nav class="hn-profile-lists" aria-label="Profile lists">
+  <%= link_to "submissions", submissions_user_path(user) %>
+  <%= link_to "comments", comments_user_path(user) %>
+  <% if own_profile %>
+    <%= link_to "hidden", hidden_submissions_path %>
+    <%= link_to "upvoted submissions", upvoted_user_path(user) %>
+    <%= link_to "upvoted comments", upvoted_comments_user_path(user) %>
+  <% end %>
+  <%= link_to "favorite submissions", favorites_user_path(user) %>
+  <%= link_to "favorite comments", favorite_comments_user_path(user) %>
+</nav>
+<% if own_profile %>
+  <small class="hn-profile-note">Favorites are publicly visible.</small>
+<% end %>

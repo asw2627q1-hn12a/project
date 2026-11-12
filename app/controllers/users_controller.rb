@@ -1,7 +1,7 @@
 class UsersController < ApplicationController
   PRIVATE_LISTS = %i[ upvoted upvoted_comments ].freeze
 
-  before_action :set_user, only: %i[ show edit update destroy submissions comments ] + PRIVATE_LISTS
+  before_action :set_user, only: %i[ show edit update destroy submissions comments favorites favorite_comments ] + PRIVATE_LISTS
   before_action :require_login, only: %i[ new create edit update destroy ] + PRIVATE_LISTS
   before_action :require_owner, only: %i[ edit update destroy ] + PRIVATE_LISTS
 
@@ -24,6 +24,18 @@ class UsersController < ApplicationController
     @comments = @user.comments.where(deleted_at: nil).includes(:user, :submission, parent: :user).order(created_at: :desc)
   end
 
+  # GET /users/1/favorites (públic, com a HN: "publicly visible"). Primer els darrers que s'han marcat.
+  def favorites
+    @submissions = @user.favorite_submissions.visible_to(current_user).with_comments_count.includes(:user)
+      .order(SubmissionFavorite.arel_table[:created_at].desc)
+  end
+
+  # GET /users/1/favorite_comments (públic)
+  def favorite_comments
+    @comments = @user.favorite_comments.where(deleted_at: nil).includes(:user, :submission, parent: :user)
+      .order(CommentFavorite.arel_table[:created_at].desc)
+  end
+
   # GET /users/1/upvoted (només el propietari)
   def upvoted
     @submissions = @user.upvoted_submissions.with_comments_count.includes(:user).by_relevance
@@ -39,8 +51,9 @@ class UsersController < ApplicationController
     @user = User.new
   end
 
-  # GET /users/1/edit
+  # GET /users/1/edit: com a HN (i la captura de l'enunciat), el formulari és al mateix perfil.
   def edit
+    redirect_to @user
   end
 
   # POST /users or /users.json
@@ -65,7 +78,7 @@ class UsersController < ApplicationController
         format.html { redirect_to @user, notice: "User was successfully updated.", status: :see_other }
         format.json { render :show, status: :ok, location: @user }
       else
-        format.html { render :edit, status: :unprocessable_content }
+        format.html { render :show, status: :unprocessable_content }
         format.json { render json: @user.errors, status: :unprocessable_content }
       end
     end
@@ -97,6 +110,6 @@ class UsersController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def user_params
-      params.expect(user: [ :about, :email ])
+      params.expect(user: [ :about, :email, :avatar, :banner, :remove_avatar, :remove_banner ])
     end
 end
