@@ -1,15 +1,17 @@
-# Limpiamos datos previos
-Submission.destroy_all
-User.destroy_all
+# Solo añadimos ejemplos que no existen; nunca borramos ni actualizamos datos existentes.
 
 puts "Creando usuarios..."
 users = [
-  User.create!(username: "pg", email: "pg@ycombinator.com"),
-  User.create!(username: "dhh", email: "dhh@rails.org"),
-  User.create!(username: "matz", email: "matz@ruby-lang.org"),
-  User.create!(username: "linus", email: "torvalds@linux.org"),
-  User.create!(username: "ada_lovelace", email: "ada@analyticalengine.uk")
-]
+  { username: "pg", email: "pg@ycombinator.com" },
+  { username: "dhh", email: "dhh@rails.org" },
+  { username: "matz", email: "matz@ruby-lang.org" },
+  { username: "linus", email: "torvalds@linux.org" },
+  { username: "ada_lovelace", email: "ada@analyticalengine.uk" }
+].map do |attributes|
+  User.find_or_create_by!(username: attributes[:username]) do |user|
+    user.email = attributes[:email]
+  end
+end
 
 puts "Creando 12 submissions de tipo URL..."
 submissions_data = [
@@ -100,15 +102,9 @@ submissions_data = [
 ]
 
 submissions_data.each do |data|
-  Submission.create!(
-    title: data[:title],
-    url: data[:url],
-    points: data[:points],
-    submission_type: "url",
-    user: data[:user],
-    created_at: data[:created_at],
-    updated_at: data[:created_at]
-  )
+  Submission.where("LOWER(url) = ?", data[:url].downcase).first_or_create! do |submission|
+    submission.assign_attributes(data.merge(submission_type: "url", updated_at: data[:created_at]))
+  end
 end
 
 puts "Creando submissions de tipo Ask..."
@@ -117,7 +113,9 @@ puts "Creando submissions de tipo Ask..."
   { title: "Ask HN: Is SQLite enough for a side project in production?", text: "Thinking of skipping Postgres entirely.", points: 54, user: users[3], created_at: 5.hours.ago },
   { title: "Ask HN: What was your favourite course at university?", points: 12, user: users[2], created_at: 1.day.ago }
 ].each do |data|
-  Submission.create!(data.merge(submission_type: "ask", updated_at: data[:created_at]))
+  Submission.find_or_create_by!(title: data[:title], user: data[:user], submission_type: "ask") do |submission|
+    submission.assign_attributes(data.merge(updated_at: data[:created_at]))
+  end
 end
 
-puts "¡Seeds completados! #{User.count} usuarios y #{Submission.count} submissions creadas."
+puts "¡Seeds completados! #{User.count} usuarios y #{Submission.count} submissions en total."
