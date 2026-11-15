@@ -42,6 +42,11 @@ Rails.application.routes.draw do
     end
   end
 
+  # API REST (api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
+  namespace :api, defaults: { format: :json } do
+    get "ask", to: "ask#index"
+  end
+
   # OmniAuth routes
   get "/auth/:provider/callback", to: "sessions#create"
   # Rep el callback després que OmniAuth processi el codi.
