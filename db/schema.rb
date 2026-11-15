@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_133607) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_15_170734) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -124,6 +124,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_133607) do
     t.string "provider"
     t.string "uid"
     t.text "about"
+    t.string "api_key", null: false
+    t.index ["api_key"], name: "index_users_on_api_key", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
   end

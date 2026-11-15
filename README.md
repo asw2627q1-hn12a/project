@@ -145,6 +145,24 @@ ruby bin/importmap audit
 
 Les bases de dades de test han de ser independents de producció. La preparació d'una PostgreSQL de prova amb Docker es descriu a [docs/postgresql.md](docs/postgresql.md).
 
+## API keys i autenticació comuna (Taiga #72)
+
+Cada usuari nou rep una clau aleatòria de 32 caràcters amb `has_secure_token` de Rails. La migració assigna claus als usuaris existents sense modificar els seus altres atributs ni timestamps; la BD exigeix una clau no nul·la i única. Les actualitzacions de perfil i els logins posteriors conserven la clau. L'importador de SQLite genera claus quan el backup antic no en té i conserva les que ja existeixen.
+
+Desfer aquesta migració elimina les claus; si es torna a aplicar, se'n generen de noves.
+
+La clau es guarda sense xifrar per poder-la recuperar i copiar des del perfil propi: una filtració de la BD exposaria aquestes claus. Un hash no permetria tornar-les a mostrar; el xifrat recuperable requeriria gestionar claus de xifrat. No s'inclou en la serialització genèrica de `User`; els filtres existents de Rails (`:_key`) la protegeixen en inspeccions i logs de paràmetres i SQL amb binds. No imprimiu claus ni les afegiu a logs manuals.
+
+Per obtenir-la en local, inicieu sessió amb GitHub i obriu el perfil propi des del nom de la capçalera. El camp `API key:` és de només lectura: seleccioneu-lo i copieu-lo. No s'envia amb el formulari ni es pot substituir editant el perfil. No apareix als perfils aliens, als llistats o al JSON, tampoc al JSON del propietari. Les respostes del perfil propi utilitzen `Cache-Control: no-store`.
+
+Els controllers d'API han d'heretar d'`Api::BaseController`, que identifica `current_user` només amb la capçalera `X-API-Key`. La clau s'ha d'enviar a cada petició: ni la sessió web ni un paràmetre `api_key` o `user_id` substitueixen la capçalera. Si falta o no és vàlida, retorna HTTP 401 amb `{"error":"unauthorized","message":"Missing or invalid API key"}`, sempre en JSON i sense redirigir al login.
+
+La base hereta d'`ActionController::API`: les operacions d'API utilitzaran la clau explícita, mentre que la web conserva la seva autenticació per sessió i la protecció CSRF. L'autenticació no substitueix l'autorització: cada endpoint haurà de comprovar la propietat i la resta de regles de negoci. El contracte acordat utilitza el prefix `/api`.
+
+La base retorna els errors previsibles amb `{ "error": "codi", "message": "explicació" }`: paràmetres absents o JSON malformat (400), recursos no trobats (404), conflictes d'unicitat de BD (409) i validacions de `save!`/`create!` (422, amb `details` per camp). Els endpoints poden cridar `render_api_error(code, message, status:, details: nil)` per a altres errors de negoci, com el 403. Si s'utilitza `save` sense excepció, l'endpoint ha de gestionar el retorn `false`. No es retornen missatges interns de SQL ni es capturen indiscriminadament tots els errors.
+
+Els endpoints funcionals i CORS s'implementen a les tasques corresponents. Els tests de la base fan servir rutes temporals que no existeixen a l'aplicació desplegada. En integrar un endpoint, hereteu d'`Api::BaseController`, definiu la ruta sota `namespace :api` i proveu l'accés amb una clau vàlida i sense clau.
+
 ## Flux de treball
 
 1. Cada tasca de **Taiga** té la seva pròpia branca a GitHub.

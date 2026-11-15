@@ -32,6 +32,8 @@ class SqliteDataImportTest < ActiveSupport::TestCase
 
     assert_equal 2, counts.fetch("users")
     assert_equal "Imported author", User.find(3).username
+    assert_equal 2, User.distinct.count(:api_key)
+    assert_equal 32, User.find(3).api_key.length
     assert_equal 8, Submission.find(19).points
     assert_equal 11, Comment.find(9).parent_id
     assert_equal 19, SubmissionVote.find(7).submission_id
@@ -49,6 +51,18 @@ class SqliteDataImportTest < ActiveSupport::TestCase
 
     assert_equal [ user.id ], User.pluck(:id)
     assert_equal "Existing user", user.reload.username
+  end
+
+  test "preserves API keys already present in a backup" do
+    rows = valid_rows
+    rows.fetch("users").each { |row| row["api_key"] = SecureRandom.base58(32) }
+    write_backup(rows)
+
+    SqliteDataImport.call(@backup_path)
+
+    rows.fetch("users").each do |row|
+      assert_equal row.fetch("api_key"), User.find(row.fetch("id")).api_key
+    end
   end
 
   test "rolls back imported rows if a foreign key is invalid" do
