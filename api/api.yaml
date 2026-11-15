@@ -78,7 +78,7 @@ paths:
   #   users        PUT|DELETE /users/{id}/banner             Martina  #70  (PUT: multipart, own)
   # ---------------------------------------------------------------------------
 
-  # --- Lists: main page and search (Marc, #76) ------------------------------- (En proceso)
+  # --- Lists: main page and search (Marc, #76) -------------------------------
   /submissions:
     get:
       tags: [lists]
@@ -171,6 +171,19 @@ components:
     UserSummary:
       type: object
       description: Author of a submission or comment.
+      required: [id, username]
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: marc
+
+    NullableUserSummary:
+      type: object
+      nullable: true
+      description: Author of a comment, or null when the comment has been deleted.
       required: [id, username]
       properties:
         id:
@@ -311,9 +324,7 @@ components:
           type: string
           format: date-time
         author:
-          allOf:
-            - $ref: "#/components/schemas/UserSummary"
-          nullable: true
+          $ref: "#/components/schemas/NullableUserSummary"
         voted:
           type: boolean
           description: Whether the API key user has voted it.
