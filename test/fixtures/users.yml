@@ -3,7 +3,9 @@
 one:
   username: user_one
   email: one@example.com
+  api_key: <%= SecureRandom.base58(32) %>
 
 two:
   username: user_two
   email: two@example.com
+  api_key: <%= SecureRandom.base58(32) %>

@@ -55,6 +55,17 @@
         <td class="hn-profile-label"><%= form.label :email, "email:" %></td>
         <td><%= form.email_field :email, size: 40 %></td>
       </tr>
+      <% if user == current_user %>
+        <tr>
+          <td class="hn-profile-label"><%= label_tag "user_api_key", "API key:" %></td>
+          <td>
+            <%= text_field_tag nil, user.api_key, id: "user_api_key", readonly: true, size: 36,
+                  autocomplete: "off", spellcheck: false, aria: { describedby: "user_api_key_help" } %>
+            <br>
+            <small id="user_api_key_help">Select and copy. Send it in the X-API-Key header. Keep it private.</small>
+          </td>
+        </tr>
+      <% end %>
       <tr>
         <td></td>
         <td><%= render "profile_lists", user: user, own_profile: true %></td>

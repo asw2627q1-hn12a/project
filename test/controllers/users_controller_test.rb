@@ -26,6 +26,17 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "public HTML and JSON responses never expose API keys" do
+    [ users_url, user_url(@user), users_url(format: :json), user_url(@user, format: :json) ].each do |url|
+      get url
+      assert_response :success
+      User.pluck(:api_key).each do |key|
+        assert_not_includes response.body, key
+      end
+      assert_not_includes response.body, "api_key"
+    end
+  end
+
   test "edit redirects to the profile, where the owner edits it" do
     sign_in
     get edit_user_url(current_user)
@@ -97,6 +108,50 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
 
     assert_select "input[name='user[email]'][value=?]", "users@example.com"
     assert_select "a[href=?]", hidden_submissions_path
+  end
+
+  test "API key is copyable only on the owner's HTML profile and is not submitted" do
+    sign_in
+    user = current_user
+
+    get user_url(user)
+
+    assert_response :success
+    assert_includes response.headers.fetch("Cache-Control"), "no-store"
+    assert_select "label[for=user_api_key]", text: "API key:"
+    assert_select "input#user_api_key[readonly][value=?]", user.api_key
+    assert_select "input#user_api_key[name]", count: 0
+    assert_not_includes response.body, @user.api_key
+
+    get user_url(@user)
+    assert_select "#user_api_key", count: 0
+    assert_not_includes response.body, @user.api_key
+    assert_not_includes response.body, user.api_key
+
+    get user_url(user, format: :json)
+    assert_not response.parsed_body.key?("api_key")
+    assert_not_includes response.body, user.api_key
+
+    post logout_url
+    get user_url(user)
+    assert_select "#user_api_key", count: 0
+    assert_not_includes response.body, user.api_key
+  end
+
+  test "profile updates cannot replace the API key and validation failures preserve it" do
+    sign_in
+    user = current_user
+    original_key = user.api_key
+
+    patch user_url(user), params: { user: { about: "Updated", api_key: "client-selected-key" } }
+    assert_redirected_to user_url(user)
+    assert_equal original_key, user.reload.api_key
+
+    patch user_url(user), params: { user: { about: "a" * 2001, api_key: "client-selected-key" } }
+    assert_response :unprocessable_content
+    assert_includes response.headers.fetch("Cache-Control"), "no-store"
+    assert_select "input#user_api_key[value=?]", original_key
+    assert_equal original_key, user.reload.api_key
   end
 
   test "owner can update about and email but not username" do

@@ -23,6 +23,18 @@ class UsersTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Users"
   end
 
+  test "API key is readable on own profile and absent from another profile" do
+    visit user_url(@user)
+    assert_field "API key:", with: @user.api_key, readonly: true
+
+    visit user_url(users(:one))
+    assert_no_field "API key:"
+
+    visit user_url(@user)
+    page.refresh
+    assert_field "API key:", with: @user.reload.api_key, readonly: true
+  end
+
   test "should update User" do
     # Com a la captura de l'enunciat, el perfil propi ja és el formulari.
     visit user_url(@user)

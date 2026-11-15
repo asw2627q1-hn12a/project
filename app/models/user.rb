@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   MAX_OAUTH_CREATE_ATTEMPTS = 3
 
+  has_secure_token :api_key, length: 32, on: :validation
+
   has_many :submission_hides, dependent: :destroy
   has_many :submission_favorites, dependent: :destroy
   has_many :favorite_submissions, through: :submission_favorites, source: :submission
@@ -28,6 +30,7 @@ class User < ApplicationRecord
   attribute :remove_banner, :boolean, default: false
 
   validates :username, presence: true, uniqueness: true
+  validates :api_key, presence: true, uniqueness: true
   validates :about, length: { maximum: 2000 }
   validate :images_are_valid
 
@@ -36,6 +39,11 @@ class User < ApplicationRecord
   # Karma estil HN: suma dels punts de les submissions i dels comentaris de l'usuari.
   def karma
     submissions.sum(:points) + comments.sum(:points)
+  end
+
+  # La clau només es llegirà explícitament des del perfil propi, mai en JSON genèric.
+  def serializable_hash(options = nil)
+    super.except("api_key")
   end
 
   def self.from_omniauth(auth)
