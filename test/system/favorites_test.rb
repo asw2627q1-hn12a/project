@@ -21,8 +21,16 @@ class FavoritesSystemTest < ApplicationSystemTestCase
     page.current_window.resize_to(1400, 1000)
     visit "/auth/github/callback"
     visit news_url
-    assert_no_selector "form.favorite-form"
+    within "#submission_#{@submission.id} .submission-title-row" do
+      find("button[aria-label=favorite]").click
+      assert_selector "button[aria-pressed=true] svg[fill=currentColor]"
+    end
+    assert_equal news_path, page.current_path
     visit submission_url(@submission)
+    within "form[action='#{submission_favorite_path(@submission)}']" do
+      assert_selector "button[aria-pressed=true]"
+      find("button[aria-label=favorite]").click
+    end
     control = find(".submission-title-row form[action='#{submission_favorite_path(@submission)}'] button")
     control.hover
     assert_selector "[role=tooltip]", text: "Add to favorites"
@@ -42,6 +50,29 @@ class FavoritesSystemTest < ApplicationSystemTestCase
       find("button[aria-label=favorite]").click
       assert_selector "button[aria-label=favorite][aria-pressed=false]"
     end
+    assert_not @user.submission_favorites.exists?(submission: @submission)
+  end
+
+  test "remove a submission from favorites on mobile and preserve search results" do
+    page.current_window.resize_to(1400, 1000)
+    @submission.update!(title: "A long submission title " * 8)
+    visit "/auth/github/callback"
+    visit search_url(q: "long submission")
+    page.save_screenshot(Rails.root.join("tmp/favorite-list-desktop.png"))
+    page.current_window.resize_to(390, 844)
+    within "#submission_#{@submission.id}" do
+      find("button[aria-label=favorite]").click
+      assert_selector "button[aria-pressed=true]"
+    end
+    assert_equal search_path, page.current_path
+    assert_equal "q=long+submission", URI.parse(page.current_url).query
+    page.save_screenshot(Rails.root.join("tmp/favorite-list-mobile.png"))
+    visit favorites_user_url(@user)
+    within "#submission_#{@submission.id}" do
+      find("button[aria-label=favorite]").click
+    end
+    assert_selector "[role=status]", text: "No submissions yet."
+    assert_equal favorites_user_path(@user), page.current_path
     assert_not @user.submission_favorites.exists?(submission: @submission)
   end
 
