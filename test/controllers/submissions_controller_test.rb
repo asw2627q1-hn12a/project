@@ -190,6 +190,8 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name='submission[title]']"
     assert_select "input[name='submission[url]'][type='url']"
     assert_select "textarea[name='submission[text]']"
+    assert_select "textarea[aria-describedby='submission-text-help']"
+    assert_select "#submission-text-help", text: "Leave the URL blank to submit an Ask post. If there is a URL, text is optional but won't be shown."
     assert_select "input[name='submission[user_id]']", count: 0
     assert_select "input[name='submission[submission_type]']", count: 0
   end
@@ -299,6 +301,38 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_select ".submission-heading-domain a[href=?]", @submission.url, text: @submission.domain
   end
 
+  test "Ask detail shows its text as plain text with line breaks preserved" do
+    text = "First line\n\n<script>alert('test')</script>\nLast line"
+    @submission.update!(url: nil, text: text)
+
+    get submission_url(@submission)
+
+    assert_response :success
+    assert_select ".submission-text", count: 1 do |elements|
+      assert_equal text, elements.first.text
+    end
+    assert_select ".submission-text script", count: 0
+  end
+
+  test "URL detail does not show submission text" do
+    @submission.update!(text: "Hidden text for a link")
+
+    get submission_url(@submission)
+
+    assert_response :success
+    assert_select ".submission-text", count: 0
+    assert_not_includes response.body, "Hidden text for a link"
+  end
+
+  test "Ask detail with blank text does not render an empty text block" do
+    @submission.update!(url: nil, text: "")
+
+    get submission_url(@submission)
+
+    assert_response :success
+    assert_select ".submission-text", count: 0
+  end
+
   test "submission heading does not render executable URLs from stored data" do
     [ "javascript:alert(1)", "javascript://example.com/%0Aalert(1)", "data:text/html,<script>alert(1)</script>" ].each do |url|
       @submission.update_columns(url: url)
@@ -319,6 +353,8 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name='submission[title]'][value=?]", @submission.title
     assert_select "input[name='submission[url]'][value=?]", @submission.url
     assert_select "textarea[name='submission[text]']", text: @submission.text.to_s
+    assert_select "textarea[aria-describedby='submission-text-help']"
+    assert_select "#submission-text-help", text: "Leave the URL blank to submit an Ask post. If there is a URL, text is optional but won't be shown."
     assert_select "input[type=submit][value='update']"
     assert_select ".submission-edit-page .hn-itemlist .titleline", text: /#{Regexp.escape(@submission.title)}/
   end

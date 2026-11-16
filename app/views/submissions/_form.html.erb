@@ -22,10 +22,11 @@
 
   <div class="submission-form-field">
     <%= form.label :text, "text" %>
-    <%= form.text_area :text, rows: 4 %>
+    <%= form.text_area :text, rows: 4, aria: { describedby: "submission-text-help" } %>
   </div>
 
   <div class="submission-form-actions">
     <%= form.submit(submission.persisted? ? "update" : "submit") %>
   </div>
+  <p id="submission-text-help" class="submit-help">Leave the URL blank to submit an Ask post. If there is a URL, text is optional but won't be shown.</p>
 <% end %>
