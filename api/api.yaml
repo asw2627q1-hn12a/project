@@ -117,6 +117,42 @@ paths:
   # --- Lists: newest (Hector, #66) -------------------------------------------
 
   # --- Lists: ask (Martina, #71) ---------------------------------------------
+  /ask:
+    get:
+      tags: [lists]
+      summary: Ask submissions
+      description: |
+        Returns only the Ask submissions (the ones without URL), ordered by relevance like the
+        main page: points descending and, on ties, newest first. Submissions hidden by the API key
+        user are not included, so `hidden` is always false in this list.
+      operationId: listAskSubmissions
+      responses:
+        "200":
+          description: Ask submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+              example:
+                - id: 14
+                  title: "Ask HN: How do you organise a team project at university?"
+                  url: null
+                  text: We are five people and we always end up with merge conflicts.
+                  submission_type: ask
+                  domain: null
+                  points: 23
+                  comments_count: 4
+                  created_at: "2026-11-14T18:30:00.000Z"
+                  author:
+                    id: 3
+                    username: matz
+                  voted: true
+                  hidden: false
+                  favorited: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   # --- Lists: comments and threads (Marc, #77) -------------------------------
 
