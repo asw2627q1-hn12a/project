@@ -159,6 +159,129 @@ paths:
   # --- Comments (Hector, #65) ------------------------------------------------
 
   # --- Votes and hides (Joel, #73) -------------------------------------------
+  /submissions/{id}/vote:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [interactions]
+      summary: Vote for a submission
+      description: Returns 403 for your own submission and 409 if you have already voted.
+      operationId: voteSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "201":
+          description: Vote created. Points include the new vote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove the current user's vote from a submission
+      description: Returns 409 if you have no vote to remove.
+      operationId: unvoteSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Vote removed and one point deducted.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /comments/{id}/vote:
+    parameters:
+      - $ref: "#/components/parameters/CommentId"
+    post:
+      tags: [interactions]
+      summary: Vote for a comment
+      description: Returns 403 for your own comment or a deleted comment and 409 if you have already voted.
+      operationId: voteComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "201":
+          description: Vote created. Points include the new vote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove the current user's vote from a comment
+      description: You can remove an existing vote from a deleted comment. Returns 409 if you have no vote to remove.
+      operationId: unvoteComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Vote removed and one point deducted.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /submissions/{id}/hide:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [interactions]
+      summary: Hide a submission
+      description: Returns 409 if the submission is already hidden for you.
+      operationId: hideSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "201":
+          description: Submission hidden for the API key user. Points are unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionHideState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Unhide a submission
+      description: Returns 409 if the submission is not hidden for you.
+      operationId: unhideSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Submission unhidden for the API key user.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   # --- Favorites (Vinyet, #62) -----------------------------------------------
 
@@ -379,6 +502,30 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/CommentTree"
+
+    VoteState:
+      type: object
+      required: [id, points, voted]
+      properties:
+        id:
+          type: integer
+        points:
+          type: integer
+        voted:
+          type: boolean
+          enum: [true]
+
+    SubmissionHideState:
+      type: object
+      required: [id, points, hidden]
+      properties:
+        id:
+          type: integer
+        points:
+          type: integer
+        hidden:
+          type: boolean
+          enum: [true]
 
     Error:
       type: object
