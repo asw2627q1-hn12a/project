@@ -33,4 +33,18 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to root_url
   end
+
+  test "login returns to the page where it started" do
+    post "/auth/github", params: { origin: "/newest" }
+    follow_redirect!
+
+    assert_redirected_to "/newest"
+  end
+
+  test "login ignores an external origin" do
+    post "/auth/github", params: { origin: "https://evil.example.com/" }
+    follow_redirect!
+
+    assert_redirected_to root_url
+  end
 end

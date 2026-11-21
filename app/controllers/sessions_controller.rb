@@ -3,6 +3,10 @@ class SessionsController < ApplicationController
     auth = request.env["omniauth.auth"]
     # Recupera les dades que OmniAuth ha obtingut del proveïdor.
 
+    origin = safe_return_path(request.env["omniauth.origin"])
+    # Pàgina des d'on s'ha iniciat sessió (OmniAuth la desa a partir del Referer o del paràmetre origin).
+    # Es llegeix abans del reset_session.
+
     user = User.from_omniauth(auth)
     # Busca o crea l'usuari a partir de provider i uid.
 
@@ -12,8 +16,8 @@ class SessionsController < ApplicationController
     session[:user_id] = user.id
     # Desa només l'identificador intern de User.
 
-    redirect_to root_path
-    # Torna a la pàgina principal després del login.
+    redirect_to origin || root_path
+    # Torna a la pàgina on era l'usuari; si no és una ruta interna vàlida, a la portada.
   end
 
   def failure

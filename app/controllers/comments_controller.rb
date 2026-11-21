@@ -53,7 +53,8 @@ class CommentsController < ApplicationController
     respond_to do |format|
       if @comment.update(edit_comment_params)
         format.html do
-          redirect_to submission_comment_path(@submission, @comment), notice: "Changes saved."
+          redirect_to "#{return_path_or(submission_comment_path(@submission, @comment))}##{helpers.dom_id(@comment)}",
+                      notice: "Changes saved."
         end
         format.json { render json: @comment, status: :ok }
       else
@@ -68,7 +69,8 @@ class CommentsController < ApplicationController
 
     respond_to do |format|
       format.html do
-        redirect_to submission_comment_path(@submission, @comment),
+        thread_path = @comment.parent ? submission_comment_path(@submission, @comment.parent) : submission_path(@submission, anchor: "comments")
+        redirect_to return_path_after_destroy(submission_comment_path(@submission, @comment), thread_path),
                     notice: "Comment deleted. Replies have been preserved."
       end
       format.json { head :no_content }

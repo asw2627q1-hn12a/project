@@ -273,7 +273,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       comment: { body: "Text editat", user_id: users(:two).id }
     }
 
-    assert_redirected_to submission_comment_url(@submission, comment)
+    assert_redirected_to submission_comment_url(@submission, comment, anchor: "comment_#{comment.id}")
     assert_equal "Changes saved.", flash[:notice]
     assert_equal "Text editat", comment.reload.body
     assert_equal author, comment.user
@@ -326,7 +326,7 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
       delete submission_comment_url(@submission, comment)
     end
 
-    assert_redirected_to submission_comment_url(@submission, comment)
+    assert_redirected_to submission_comment_url(@submission, ancestor)
     assert_equal "Comment deleted. Replies have been preserved.", flash[:notice]
     assert_empty comment.reload.body
     assert_predicate comment, :deleted?
@@ -450,6 +450,16 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "#comment_#{comment.id} .comment-deleted", text: "[deleted]"
+  end
+
+  test "deleting a comment from Threads returns to Threads" do
+    sign_in
+    logged_in_user = User.find_by!(uid: "github-comments-controller")
+    comment = Comment.create!(submission: @submission, user: logged_in_user, body: "Per esborrar")
+
+    delete submission_comment_url(@submission, comment), params: { return_to: threads_path }
+
+    assert_redirected_to threads_path
   end
 
   private
