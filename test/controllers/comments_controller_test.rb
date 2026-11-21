@@ -28,6 +28,8 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_select "#comment_#{newer.id} .comment-body", text: "Comentari recent"
     assert_select "#comment_#{newer.id} a[href='#{submission_path(newer.submission, anchor: "comments")}']",
                   text: newer.submission.title
+    assert_select "#comment_#{newer.id} a.comment-age[href=?]",
+                  submission_comment_path(newer.submission, newer, anchor: dom_id(newer))
     assert_operator response.body.index("Comentari recent"), :<, response.body.index("Comentari antic")
   end
 
@@ -373,6 +375,10 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "#comment_#{mine.id}"
     assert_select "#comment_#{mine.id} #comment_#{reply.id}"
+    assert_select "#comment_#{mine.id} a.comment-age[href=?]",
+                  submission_comment_path(@submission, mine, anchor: dom_id(mine))
+    assert_select "#comment_#{reply.id} a.comment-age[href=?]",
+                  submission_comment_path(@submission, reply, anchor: dom_id(reply))
     assert_select "#comment_#{other.id}", 0
   end
 
