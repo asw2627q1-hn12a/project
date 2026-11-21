@@ -79,17 +79,17 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 git clone https://github.com/asw2627q1-hn12a/project.git
 cd project
 bin/setup --skip-server   # instal·la gems i prepara la base de dades
-bin/rails db:seed         # (opcional) carrega usuaris i submissions de prova
+bin/rails db:seed         # (opcional) carrega dades de prova: usuaris, submissions URL/Ask i fils de comentaris
 ```
 
-Els seeds afegeixen els exemples que falten sense esborrar dades ni modificar els registres existents. Es poden tornar a executar sense duplicar els mateixos exemples. Això no substitueix la persistència de la base de dades a producció.
+Els seeds afegeixen els exemples que falten (usuaris amb biografia, submissions de tipus URL i Ask, i arbres de comentaris a múltiples nivells amb diversos autors i casos per a la demo) sense esborrar dades ni modificar els registres existents. Es poden tornar a executar sense duplicar els mateixos exemples. Això no substitueix la persistència de la base de dades a producció.
 
 En Windows, es poden executar les ordres de Rails amb Ruby explícitament:
 
 ```powershell
 bundle install
 ruby bin/rails db:prepare
-ruby bin/rails db:seed   # opcional, contra la BD local
+ruby bin/rails db:seed   # opcional, carrega les dades de prova contra la BD local
 ```
 
 ### 3. Variables d'entorn (login amb GitHub)
@@ -223,7 +223,7 @@ config/
 db/
   migrate/       # migracions de l'esquema
   schema.rb
-  seeds.rb       # dades de prova
+  seeds.rb       # dades de prova reproduïbles (usuaris, submissions URL/Ask i fils)
 docs/
   postgresql.md  # preparació, importació i verificació del desplegament
 lib/
