@@ -9,11 +9,35 @@ class Api::AskControllerTest < ActionDispatch::IntegrationTest
     @new_tie = Submission.create!(title: "Ask new tie", points: 5, user: @author, created_at: 2.hours.ago)
   end
 
-  test "without API key returns 401" do
-    get "/api/ask"
+  test "does not allow requests from an unapproved origin" do
+    options "/api/ask", headers: {
+      "Origin" => "https://evil.example",
+      "Access-Control-Request-Method" => "GET",
+      "Access-Control-Request-Headers" => "x-api-key"
+    }
+
+    assert_nil response.headers["Access-Control-Allow-Origin"]
+  end
+
+  test "allows Swagger Editor to send the API key header" do
+    options "/api/ask", headers: {
+      "Origin" => "https://editor.swagger.io",
+      "Access-Control-Request-Method" => "GET",
+      "Access-Control-Request-Headers" => "x-api-key"
+    }
+
+    assert_response :ok
+    assert_equal "https://editor.swagger.io", response.headers["Access-Control-Allow-Origin"]
+    allowed_headers = response.headers.fetch("Access-Control-Allow-Headers").downcase.split(",").map(&:strip)
+    assert_includes allowed_headers, "x-api-key"
+  end
+
+  test "without API key returns 401 with CORS headers for Swagger Editor" do
+    get "/api/ask", headers: { "Origin" => "https://editor.swagger.io" }
 
     assert_response :unauthorized
     assert_equal "unauthorized", response.parsed_body.fetch("error")
+    assert_equal "https://editor.swagger.io", response.headers["Access-Control-Allow-Origin"]
   end
 
   test "returns only ask submissions ordered by points and then newest" do

@@ -13,13 +13,13 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 
 ## Equip
 
-| Membre |
-| --- |
-| Vinyet Amorós |
+| Membre            |
+| ----------------- |
+| Vinyet Amorós     |
 | Martina Maldonado |
-| Héctor Gutiérrez |
-| Joel Novio |
-| Marc Rodríguez |
+| Héctor Gutiérrez  |
+| Joel Novio        |
+| Marc Rodríguez    |
 
 ## Funcionalitats actuals
 
@@ -55,15 +55,15 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 
 ## Stack
 
-| Peça | Versió / eina |
-| --- | --- |
-| Ruby | 4.0.7 (veure `.ruby-version`) |
-| Rails | 8.1.4.1 (veure `Gemfile.lock`) |
-| Base de dades | PostgreSQL extern a producció; SQLite 3 en local (CI amb tots dos) |
-| Frontend | Hotwire (Turbo + Stimulus), Importmap, Propshaft |
-| Autenticació | `omniauth` + `omniauth-github` |
-| Cua / cache / cable | Solid Queue, Solid Cache, Solid Cable |
-| Desplegament | Docker a Render (`render.yaml`) |
+| Peça                | Versió / eina                                                      |
+| ------------------- | ------------------------------------------------------------------ |
+| Ruby                | 4.0.7 (veure `.ruby-version`)                                      |
+| Rails               | 8.1.4.1 (veure `Gemfile.lock`)                                     |
+| Base de dades       | PostgreSQL extern a producció; SQLite 3 en local (CI amb tots dos) |
+| Frontend            | Hotwire (Turbo + Stimulus), Importmap, Propshaft                   |
+| Autenticació        | `omniauth` + `omniauth-github`                                     |
+| Cua / cache / cable | Solid Queue, Solid Cache, Solid Cable                              |
+| Desplegament        | Docker a Render (`render.yaml`)                                    |
 
 ## Posada en marxa en local
 
@@ -94,7 +94,7 @@ ruby bin/rails db:seed   # opcional, carrega les dades de prova contra la BD loc
 
 ### 3. Variables d'entorn (login amb GitHub)
 
-Crea una **OAuth App** a GitHub (*Settings → Developer settings → OAuth Apps*) amb:
+Crea una **OAuth App** a GitHub (_Settings → Developer settings → OAuth Apps_) amb:
 
 - **Homepage URL:** `http://localhost:3000`
 - **Authorization callback URL:** `http://localhost:3000/auth/github/callback`
@@ -163,11 +163,13 @@ La base retorna els errors previsibles amb `{ "error": "codi", "message": "expli
 
 Els endpoints funcionals i CORS s'implementen a les tasques corresponents. Els tests de la base fan servir rutes temporals que no existeixen a l'aplicació desplegada. En integrar un endpoint, hereteu d'`Api::BaseController`, definiu la ruta sota `namespace :api` i proveu l'accés amb una clau vàlida i sense clau.
 
+Per provar l’API des de Swagger Editor, carrega `api/api.yaml`, selecciona `http://localhost:3000/api` i introdueix la clau del teu perfil local a **Authorize**. CORS permet que Swagger Editor enviï la capçalera `X-API-Key` a les rutes `/api/*`.
+
 ## Flux de treball
 
 1. Cada tasca de **Taiga** té la seva pròpia branca a GitHub.
-2. Quan la tasca està feta, s'obre una **pull request** cap a `main` i es mou a *Ready for test* a Taiga.
-3. Per fer el merge i passar la tasca a *Closed* cal que:
+2. Quan la tasca està feta, s'obre una **pull request** cap a `main` i es mou a _Ready for test_ a Taiga.
+3. Per fer el merge i passar la tasca a _Closed_ cal que:
    - **tots els jobs de la CI** passin (tests, RuboCop, Brakeman i importmap audit), i
    - **un altre membre de l'equip aprovi** la pull request.
 
