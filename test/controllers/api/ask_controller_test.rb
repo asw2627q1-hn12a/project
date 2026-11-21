@@ -9,6 +9,16 @@ class Api::AskControllerTest < ActionDispatch::IntegrationTest
     @new_tie = Submission.create!(title: "Ask new tie", points: 5, user: @author, created_at: 2.hours.ago)
   end
 
+  test "does not allow requests from an unapproved origin" do
+    options "/api/ask", headers: {
+      "Origin" => "https://evil.example",
+      "Access-Control-Request-Method" => "GET",
+      "Access-Control-Request-Headers" => "x-api-key"
+    }
+
+    assert_nil response.headers["Access-Control-Allow-Origin"]
+  end
+
   test "allows Swagger Editor to send the API key header" do
     options "/api/ask", headers: {
       "Origin" => "https://editor.swagger.io",
