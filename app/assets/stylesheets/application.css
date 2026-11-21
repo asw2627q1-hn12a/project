@@ -600,6 +600,11 @@ body {
   gap: 8px;
 }
 
+.submission-title-row .titleline {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .submission-title-row .favorite-control {
   flex: none;
 }
