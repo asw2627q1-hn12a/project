@@ -12,7 +12,8 @@
       <%= link_to comment.user.username, user_path(comment.user), class: "comment-author" %>
     <% end %>
     <%= link_to "#{time_ago_in_words(comment.created_at)} ago",
-                submission_path(comment.submission, anchor: dom_id(comment)), class: "comment-age" %>
+                submission_comment_path(comment.submission, comment, anchor: dom_id(comment)),
+                class: "comment-age" %>
     <% if comment.parent %>
       | Reply to <%= link_to(comment.parent.deleted? ? tag.em("[#{t("comments.deleted")}]") : comment.parent.user.username,
                                submission_comment_path(comment.submission, comment.parent)) %>
