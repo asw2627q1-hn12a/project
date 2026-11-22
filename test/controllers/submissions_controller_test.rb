@@ -349,7 +349,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
       delete submission_url(@submission)
     end
 
-    assert_redirected_to submissions_url
+    assert_redirected_to root_url
   end
 
   test "anonymous users cannot edit update or destroy submissions" do
@@ -413,19 +413,19 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
 
     lists.each do |url|
       get url
-      assert_select ".subtext a[href=?]", edit_submission_path(@submission), count: 0
+      assert_select ".subtext a[href^=?]", edit_submission_path(@submission), count: 0
       assert_select ".subtext .submission-delete-form", count: 0
     end
 
     sign_in_as_owner
     lists.each do |url|
       get url
-      assert_select ".subtext a[href=?]", edit_submission_path(@submission), text: "edit", count: 1
+      assert_select ".subtext a[href=?]", edit_submission_path(@submission, return_to: URI(url).request_uri), text: "edit", count: 1
       assert_select ".subtext form[action=?][data-turbo-confirm]", submission_path(@submission) do
         assert_select "input[name=_method][value=delete]"
         assert_select "button", text: "delete", count: 1
       end
-      assert_select ".subtext a[href=?]", edit_submission_path(submissions(:two)), count: 0
+      assert_select ".subtext a[href^=?]", edit_submission_path(submissions(:two)), count: 0
       assert_select ".subtext form[action=?]", submission_path(submissions(:two)), count: 0
     end
   end
@@ -492,7 +492,7 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
       delete submission_url(@submission)
     end
 
-    assert_redirected_to submissions_url
+    assert_redirected_to root_url
     assert_not Comment.exists?(submission_id: @submission.id)
     assert_equal "Keep me", other_comment.reload.body
   end
@@ -507,6 +507,36 @@ class SubmissionsControllerTest < ActionDispatch::IntegrationTest
 
     get submission_url(submission)
     assert_select ".submission-heading-meta a[href=?]", submission_path(submission, anchor: "comments"), text: "1 comment"
+  end
+
+  test "deleting a submission from Newest returns to Newest" do
+    sign_in_as_owner
+    delete submission_url(@submission), params: { return_to: newest_path }
+
+    assert_redirected_to newest_path
+  end
+
+  test "editing a submission from a search returns to the same search" do
+    sign_in_as_owner
+    patch submission_url(@submission), params: { submission: { title: "Edited" }, return_to: "/search?q=edited" }
+
+    assert_redirected_to "/search?q=edited"
+  end
+
+  test "deleting a submission from its own page returns to the list where editing started" do
+    sign_in_as_owner
+    delete submission_url(@submission), params: { return_to: edit_submission_path(@submission, return_to: ask_path) }
+
+    assert_redirected_to ask_path
+  end
+
+  test "return_to never redirects to another site" do
+    sign_in_as_owner
+    patch submission_url(@submission), params: { submission: { title: "Edited" }, return_to: "https://evil.example.com/" }
+    assert_redirected_to submission_url(@submission)
+
+    patch submission_url(@submission), params: { submission: { title: "Edited" }, return_to: "//evil.example.com" }
+    assert_redirected_to submission_url(@submission)
   end
 
   private

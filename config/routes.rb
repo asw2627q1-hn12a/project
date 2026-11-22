@@ -46,7 +46,7 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     get "ask", to: "ask#index"
     get "threads", to: "comments#threads"
-    resources :submissions, only: [] do
+    resources :submissions, only: %i[index] do
       resource :vote, only: %i[create destroy], controller: "submission_votes"
       resource :hide, only: %i[create destroy], controller: "hidden_submissions"
     end

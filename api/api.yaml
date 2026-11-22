@@ -93,7 +93,7 @@ paths:
         - name: q
           in: query
           required: false
-          description: Text to search in the titles. Blank values are rejected.
+          description: Text to search in the titles. Blank values are rejected with 400.
           schema:
             type: string
             minLength: 1
