@@ -1,7 +1,20 @@
 module Api
   class CommentsController < BaseController
     before_action :set_comment, only: %i[show update destroy]
-    before_action :set_submission_tree, only: %i[show]
+
+    # GET /api/comments — els 30 comentaris més recents, com /newcomments a la web.
+    def index
+      @comments = Comment.includes(:user).order(created_at: :desc).limit(30).to_a
+      @states = CommentUserStates.new(current_user, @comments.map(&:submission_id).uniq)
+      render "api/comments/index"
+    end
+
+    # GET /api/threads — fils de l'usuari de l'API key, com /threads a la web.
+    def threads
+      @comments = Comment.thread_roots_for(current_user)
+      @states = CommentUserStates.new(current_user, @comments.map(&:submission_id).uniq)
+      render "api/comments/threads"
+    end
 
     # POST /api/submissions/:submission_id/comments
     def create
@@ -24,6 +37,7 @@ module Api
 
     # GET /api/comments/:id
     def show
+      load_comment_tree(@comment.submission)
       render "api/comments/show"
     end
 
@@ -54,14 +68,11 @@ module Api
       @comment = Comment.find(params.expect(:id))
     end
 
-    def set_submission_tree
-      load_comment_tree(@comment.submission)
-    end
-
     def load_comment_tree(submission)
-      comments = submission.comments.includes(:user).order(created_at: :asc, id: :asc).to_a
-      @comments_by_parent = comments.group_by(&:parent_id)
-      @comment_states = CommentUserStates.new(current_user, comments)
+      comments = submission.comments.includes(:user).to_a
+      Comment.preload_replies(comments)
+      @comment = comments.find { |c| c.id == @comment.id } || @comment
+      @states = CommentUserStates.new(current_user, [ submission.id ])
     end
 
     def comment_params

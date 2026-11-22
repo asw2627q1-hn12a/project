@@ -600,6 +600,11 @@ body {
   gap: 8px;
 }
 
+.submission-title-row .titleline {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .submission-title-row .favorite-control {
   flex: none;
 }
@@ -637,6 +642,16 @@ body {
 
 .submission-detail .submission-heading {
   margin-bottom: 6px;
+}
+
+.submission-text {
+  margin: 20px 22px 32px;
+  max-width: 75ch;
+  color: #666666;
+  font-size: 11pt;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .submission-actions {

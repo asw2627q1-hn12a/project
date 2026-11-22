@@ -1,36 +1,23 @@
-# Estat de voted/favorited d'una llista de comentaris per a un usuari.
-# Fa 2 consultes en total (una per taula) sigui quina sigui la mida del subarbre,
-# evitant consultes N+1 durant el renderitzat de la jerarquia.
+# Estat de voted/favorited dels comentaris per a un usuari, en 2 consultes en total.
+# Inclou tots els comentaris de les submissions indicades, també les respostes dels arbres.
 class CommentUserStates
-  def initialize(user, comments)
-    ids = comments.map(&:id)
-    if user && ids.any?
-      @voted_ids = user.comment_votes.where(comment_id: ids).pluck(:comment_id).to_set
-      @favorited_ids = user.comment_favorites.where(comment_id: ids).pluck(:comment_id).to_set
+  def initialize(user, submission_ids)
+    submission_ids = Array(submission_ids).compact.uniq
+    if user && submission_ids.any?
+      @voted_ids = ids_for(user.comment_votes, submission_ids)
+      @favorited_ids = ids_for(user.comment_favorites, submission_ids)
     else
       @voted_ids = Set.new
       @favorited_ids = Set.new
     end
-    @visible_cache = {}
   end
 
-  def voted?(comment)
-    @voted_ids.include?(comment.id)
-  end
+  def voted?(comment) = @voted_ids.include?(comment.id)
+  def favorited?(comment) = @favorited_ids.include?(comment.id)
 
-  def favorited?(comment)
-    @favorited_ids.include?(comment.id)
-  end
+  private
 
-  # Un comentari és visible si no està esborrat, o si té algun descendent visible.
-  def visible?(comment, comments_by_parent)
-    @visible_cache[comment.id] ||= begin
-      if !comment.deleted?
-        true
-      else
-        children = comments_by_parent[comment.id] || []
-        children.any? { |child| visible?(child, comments_by_parent) }
-      end
-    end
+  def ids_for(relation, submission_ids)
+    relation.joins(:comment).where(comments: { submission_id: submission_ids }).pluck(:comment_id).to_set
   end
 end

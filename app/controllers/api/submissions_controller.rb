@@ -25,10 +25,10 @@ module Api
       @submission = Submission.with_comments_count.includes(:user).find(params.expect(:id))
       @states = SubmissionUserStates.new(current_user, [ @submission ])
 
-      comments = @submission.comments.includes(:user).order(created_at: :asc, id: :asc).to_a
-      @comments_by_parent = comments.group_by(&:parent_id)
-      @comment_states = CommentUserStates.new(current_user, comments)
-      @root_comments = (@comments_by_parent[nil] || []).select { |c| @comment_states.visible?(c, @comments_by_parent) }
+      comments = @submission.comments.includes(:user).to_a
+      Comment.preload_replies(comments)
+      @comment_states = CommentUserStates.new(current_user, [ @submission.id ])
+      @root_comments = comments.select { |c| c.parent_id.nil? && c.visible_in_thread? }.sort_by(&:created_at)
 
       render "api/submissions/show"
     end

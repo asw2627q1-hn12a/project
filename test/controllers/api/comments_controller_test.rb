@@ -4,6 +4,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
     @author = users(:two)
+    @other = @author
     @submission = Submission.create!(title: "Submission for comments", url: "https://comments.example.com", points: 10, user: @author)
     @root_comment = @submission.comments.create!(body: "Root comment text", user: @author, points: 5)
     @reply_comment = @submission.comments.create!(body: "First reply text", parent: @root_comment, user: @user, points: 2)
@@ -11,7 +12,13 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
 
   # --- Authentication ---
 
-  test "requests without API key return 401 unauthorized" do
+  test "without API key returns 401" do
+    get "/api/comments"
+    assert_response :unauthorized
+
+    get "/api/threads"
+    assert_response :unauthorized
+
     post "/api/submissions/#{@submission.id}/comments", params: { body: "Test" }
     assert_api_error :unauthorized, "unauthorized"
 
@@ -33,7 +40,68 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_api_error :unauthorized, "unauthorized"
   end
 
-  # --- POST /api/submissions/:submission_id/comments ---
+  # --- GET /api/comments (Marc, #77) ---
+
+  test "recent comments follow the Comment schema, newest first" do
+    old = Comment.create!(submission: @submission, user: @other, body: "Old", created_at: 1.hour.ago)
+    recent = Comment.create!(submission: @submission, user: @other, body: "Recent")
+    CommentVote.create!(user: @user, comment: recent)
+
+    get "/api/comments", headers: api_headers
+
+    assert_response :success
+    first = response.parsed_body.first
+    assert_equal [ recent.id, old.id ], response.parsed_body.first(2).map { |c| c["id"] }
+    assert_equal %w[id submission_id parent_id body deleted points created_at author voted favorited].sort, first.keys.sort
+    assert_equal({ "id" => @other.id, "username" => @other.username }, first["author"])
+    assert_equal true, first["voted"]
+  end
+
+  test "deleted comments in recent comments have null body and author" do
+    comment = Comment.create!(submission: @submission, user: @other, body: "Gone")
+    comment.soft_delete!
+
+    get "/api/comments", headers: api_headers
+
+    deleted = response.parsed_body.find { |c| c["id"] == comment.id }
+    assert_equal [ nil, nil, true ], deleted.values_at("body", "author", "deleted")
+  end
+
+  # --- GET /api/threads (Marc, #77) ---
+
+  test "threads returns own comments as trees without repeating nested own comments" do
+    a = Comment.create!(submission: @submission, user: @user, body: "A")
+    b = Comment.create!(submission: @submission, user: @other, body: "B", parent: a)
+    c = Comment.create!(submission: @submission, user: @user, body: "C", parent: b)
+    Comment.create!(submission: @submission, user: @other, body: "Not mine")
+
+    get "/api/threads", headers: api_headers
+
+    assert_response :success
+    assert_equal [ a.id ], response.parsed_body.map { |t| t["id"] }
+    tree = response.parsed_body.first
+    assert_equal b.id, tree["replies"].first["id"]
+    assert_equal c.id, tree["replies"].first["replies"].first["id"]
+    assert_equal [], tree["replies"].first["replies"].first["replies"]
+  end
+
+  test "threads preloads the whole reply tree without one query per comment" do
+    a = Comment.create!(submission: @submission, user: @user, body: "A")
+    b = Comment.create!(submission: @submission, user: @other, body: "B", parent: a)
+    c = Comment.create!(submission: @submission, user: @other, body: "C", parent: b)
+    Comment.create!(submission: @submission, user: @other, body: "D", parent: c)
+
+    roots = Comment.thread_roots_for(@user)
+
+    assert_no_queries do
+      node = roots.first
+      3.times { node = node.visible_replies.first }
+      assert_equal "D", node.body
+      assert_equal @other.username, node.user.username
+    end
+  end
+
+  # --- POST /api/submissions/:submission_id/comments (Hector, #65) ---
 
   test "creates a root comment successfully" do
     assert_difference -> { @submission.comments.count }, 1 do
@@ -107,7 +175,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     assert response.parsed_body.dig("details", "body").present?
   end
 
-  # --- GET /api/comments/:id ---
+  # --- GET /api/comments/:id (Hector, #65) ---
 
   test "gets comment and its recursive replies tree" do
     child_reply = @submission.comments.create!(body: "Second level reply", parent: @reply_comment, user: @author)
@@ -163,7 +231,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_api_error :not_found, "not_found"
   end
 
-  # --- PUT/PATCH /api/comments/:id ---
+  # --- PUT/PATCH /api/comments/:id (Hector, #65) ---
 
   test "author can edit own comment" do
     put "/api/comments/#{@reply_comment.id}",
@@ -222,7 +290,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_api_error :not_found, "not_found"
   end
 
-  # --- DELETE /api/comments/:id ---
+  # --- DELETE /api/comments/:id (Hector, #65) ---
 
   test "author can soft delete own comment returning 204 no content" do
     delete "/api/comments/#{@reply_comment.id}", headers: api_headers
@@ -254,7 +322,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_api_error :not_found, "not_found"
   end
 
-  # --- GET /api/submissions/:id ---
+  # --- GET /api/submissions/:id (Hector, #65) ---
 
   test "returns submission detail with full recursive comment tree" do
     get "/api/submissions/#{@submission.id}", headers: api_headers
