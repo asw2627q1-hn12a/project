@@ -78,7 +78,7 @@ class SubmissionsController < ApplicationController
   def update
     respond_to do |format|
       if @submission.update(submission_params)
-        format.html { redirect_to @submission, notice: "Submission was successfully updated.", status: :see_other }
+        format.html { redirect_to return_path_or(submission_path(@submission)), notice: "Submission was successfully updated.", status: :see_other }
         format.json { render :show, status: :ok, location: @submission }
       else
         format.html { render :edit, status: :unprocessable_content }
@@ -92,7 +92,7 @@ class SubmissionsController < ApplicationController
     @submission.destroy!
 
     respond_to do |format|
-      format.html { redirect_to submissions_path, notice: "Submission was successfully destroyed.", status: :see_other }
+      format.html { redirect_to return_path_after_destroy(submission_path(@submission), root_path), notice: "Submission was successfully destroyed.", status: :see_other }
       format.json { head :no_content }
     end
   end

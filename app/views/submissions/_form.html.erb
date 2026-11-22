@@ -1,4 +1,5 @@
 <%= form_with(model: submission, class: "submission-form") do |form| %>
+  <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
   <% if submission.errors.any? %>
     <div style="color: red">
       <h2><%= pluralize(submission.errors.count, "error") %> prevented this submission from being saved:</h2>

@@ -6,8 +6,9 @@
     <% if current_user %>
       <%= link_to "Reply", new_submission_comment_path(submission, parent_id: comment.id), class: "comment-reply" %>
       <% if current_user == comment.user && !comment.deleted? %>
-        <%= link_to "Edit", edit_submission_comment_path(submission, comment), class: "comment-action" %>
+        <%= link_to "Edit", edit_submission_comment_path(submission, comment, return_to: return_to_here), class: "comment-action" %>
         <%= button_to "Delete", submission_comment_path(submission, comment), method: :delete,
+                      params: { return_to: return_to_here },
                       class: "comment-action comment-delete",
                       form: { data: { turbo_confirm: "Delete this comment? Replies will be preserved." } } %>
       <% end %>
