@@ -2,6 +2,7 @@ require "test_helper"
 
 class Api::NewestControllerTest < ActionDispatch::IntegrationTest
   setup do
+    Submission.destroy_all
     @user = users(:one)
     @author = users(:two)
     # Submission més antiga però amb més punts
@@ -34,7 +35,7 @@ class Api::NewestControllerTest < ActionDispatch::IntegrationTest
     assert_equal "application/json", response.media_type
     ids = response.parsed_body.map { |s| s["id"] }
     expected_order = [ @newest.id, [ @mid_a.id, @mid_b.id ].max, [ @mid_a.id, @mid_b.id ].min, @old_top.id ]
-    assert_equal expected_order, ids.first(4)
+    assert_equal expected_order, ids
   end
 
   test "includes both url and ask submissions" do
