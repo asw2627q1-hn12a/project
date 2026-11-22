@@ -52,7 +52,6 @@ class Comment < ApplicationRecord
       comment.association(:replies).target = children.fetch(comment.id, [])
     end
   end
-  private_class_method :preload_replies
 
   def self.own_ancestor?(comment, own_ids, parent_ids)
     ancestor_id = comment.parent_id

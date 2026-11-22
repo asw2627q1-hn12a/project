@@ -47,11 +47,12 @@ Rails.application.routes.draw do
     get "newest", to: "newest#index"
     get "ask", to: "ask#index"
     get "threads", to: "comments#threads"
-    resources :submissions, only: %i[index] do
+    resources :submissions, only: %i[index show] do
       resource :vote, only: %i[create destroy], controller: "submission_votes"
       resource :hide, only: %i[create destroy], controller: "hidden_submissions"
+      resources :comments, only: %i[create]
     end
-    resources :comments, only: %i[index] do
+    resources :comments, only: %i[index show update destroy] do
       resource :vote, only: %i[create destroy], controller: "comment_votes"
     end
   end

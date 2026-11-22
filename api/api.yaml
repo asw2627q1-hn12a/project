@@ -113,6 +113,29 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   # --- Submissions (Vinyet, #61) ---------------------------------------------
+  /submissions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    get:
+      tags: [submissions]
+      summary: Submission detail with comments
+      description: |
+        Returns the submission with its complete comment tree (root comments, oldest first)
+        and all nested replies recursively.
+      operationId: getSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Submission with its comments.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # --- Lists: newest (Hector, #66) -------------------------------------------
   /newest:
@@ -233,6 +256,114 @@ paths:
 
 
   # --- Comments (Hector, #65) ------------------------------------------------
+  /submissions/{id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [comments]
+      summary: Create a comment or reply
+      description: |
+        Creates a root comment for the submission, or a nested reply if `parent_id` is supplied.
+        The parent comment must belong to the same submission.
+      operationId: createComment
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Comment created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentTree"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /comments/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CommentId"
+    get:
+      tags: [comments]
+      summary: Get a comment with its replies
+      description: |
+        Returns the comment and its subtree of replies recursively, oldest first.
+        If the comment has been soft deleted, `body` and `author` are null and `deleted` is true.
+      operationId: getComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Comment with its replies.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentTree"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [comments]
+      summary: Edit a comment
+      description: |
+        Updates the text (`body`) of a comment. Only the author can edit it.
+        Deleted comments cannot be edited and return 403 Forbidden.
+      operationId: updateComment
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentUpdateInput"
+      responses:
+        "200":
+          description: Comment updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentTree"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+    delete:
+      tags: [comments]
+      summary: Soft delete a comment
+      description: |
+        Soft deletes the comment, blanking its text and setting `deleted_at`.
+        Existing replies are preserved. Only the author can delete it.
+        Deleting an already deleted comment returns 403 Forbidden.
+      operationId: deleteComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Comment deleted. Replies preserved.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
   # --- Votes and hides (Joel, #73) -------------------------------------------
   /submissions/{id}/vote:
@@ -578,6 +709,29 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/CommentTree"
+
+    CommentInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          description: Comment text.
+          example: Great news!
+        parent_id:
+          type: integer
+          nullable: true
+          description: Id of the comment to reply to, or null for a root comment.
+          example: null
+
+    CommentUpdateInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          description: New comment text.
+          example: Updated comment text.
 
     VoteState:
       type: object

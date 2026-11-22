@@ -18,5 +18,19 @@ module Api
       @states = SubmissionUserStates.new(current_user, @submissions)
       render "api/submissions/index"
     end
+
+    # GET /api/submissions/:id
+    # Detall de la submission amb el subarbre complet de comentaris (SubmissionDetail).
+    def show
+      @submission = Submission.with_comments_count.includes(:user).find(params.expect(:id))
+      @states = SubmissionUserStates.new(current_user, [ @submission ])
+
+      comments = @submission.comments.includes(:user).to_a
+      Comment.preload_replies(comments)
+      @comment_states = CommentUserStates.new(current_user, [ @submission.id ])
+      @root_comments = comments.select { |c| c.parent_id.nil? && c.visible_in_thread? }.sort_by(&:created_at)
+
+      render "api/submissions/show"
+    end
   end
 end
