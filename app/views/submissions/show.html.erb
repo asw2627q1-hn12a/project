@@ -16,6 +16,10 @@
 
 <%= render @submission %>
 
+<% if @submission.submission_type == "ask" && @submission.text.present? %>
+  <div class="submission-text"><%= @submission.text %></div>
+<% end %>
+
 <% if current_user == @submission.user %>
 <nav class="submission-actions" aria-label="Submission actions">
   <%= link_to "Edit", edit_submission_path(@submission) %>

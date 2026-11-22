@@ -639,6 +639,16 @@ body {
   margin-bottom: 6px;
 }
 
+.submission-text {
+  margin: 20px 22px 32px;
+  max-width: 75ch;
+  color: #666666;
+  font-size: 11pt;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .submission-actions {
   display: flex;
   flex-wrap: wrap;
