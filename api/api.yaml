@@ -155,6 +155,47 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   # --- Lists: comments and threads (Marc, #77) -------------------------------
+  /comments:
+    get:
+      tags: [lists]
+      summary: Recent comments
+      description: |
+        Returns the 30 most recent comments of all submissions, newest first, like the web page
+        /newcomments. Deleted comments keep their place with `body` and `author` null.
+      operationId: listRecentComments
+      responses:
+        "200":
+          description: Recent comments, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /threads:
+    get:
+      tags: [lists]
+      summary: Threads of the API key user
+      description: |
+        Returns the comments of the API key user with all their visible replies, newest first, like
+        the web page /threads. A comment that already appears inside the thread of another own
+        comment is not repeated, and own deleted comments do not start a thread.
+      operationId: listThreads
+      responses:
+        "200":
+          description: Own comments with their reply trees.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommentTree"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
 
   # --- Comments (Hector, #65) ------------------------------------------------
 
