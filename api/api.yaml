@@ -115,6 +115,41 @@ paths:
   # --- Submissions (Vinyet, #61) ---------------------------------------------
 
   # --- Lists: newest (Hector, #66) -------------------------------------------
+  /newest:
+    get:
+      tags: [lists]
+      summary: Newest submissions
+      description: |
+        Returns the submissions (URL and Ask) ordered by publication date descending (`created_at: :desc`)
+        and, on ties, newest first (`id: :desc`). Submissions hidden by the API key user are not included.
+      operationId: listNewestSubmissions
+      responses:
+        "200":
+          description: Submissions ordered from newest to oldest.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+              example:
+                - id: 18
+                  title: "Ruby on Rails 8.1 Release Candidate"
+                  url: "https://rubyonrails.org/2026/11/rails-8-1-rc"
+                  text: null
+                  submission_type: url
+                  domain: "rubyonrails.org"
+                  points: 1
+                  comments_count: 0
+                  created_at: "2026-11-22T18:00:00.000Z"
+                  author:
+                    id: 2
+                    username: hector
+                  voted: false
+                  hidden: false
+                  favorited: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   # --- Lists: ask (Martina, #71) ---------------------------------------------
   /ask:
