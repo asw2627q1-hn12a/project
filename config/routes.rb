@@ -45,11 +45,12 @@ Rails.application.routes.draw do
   # API REST (api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
   namespace :api, defaults: { format: :json } do
     get "ask", to: "ask#index"
-    resources :submissions, only: %i[index] do
+    resources :submissions, only: %i[index show] do
       resource :vote, only: %i[create destroy], controller: "submission_votes"
       resource :hide, only: %i[create destroy], controller: "hidden_submissions"
+      resources :comments, only: %i[create]
     end
-    resources :comments, only: [] do
+    resources :comments, only: %i[show update destroy] do
       resource :vote, only: %i[create destroy], controller: "comment_votes"
     end
   end
