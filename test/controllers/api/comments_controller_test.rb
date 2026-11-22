@@ -56,6 +56,22 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_equal [], tree["replies"].first["replies"].first["replies"]
   end
 
+  test "threads preloads the whole reply tree without one query per comment" do
+    a = Comment.create!(submission: @submission, user: @user, body: "A")
+    b = Comment.create!(submission: @submission, user: @other, body: "B", parent: a)
+    c = Comment.create!(submission: @submission, user: @other, body: "C", parent: b)
+    Comment.create!(submission: @submission, user: @other, body: "D", parent: c)
+
+    roots = Comment.thread_roots_for(@user)
+
+    assert_no_queries do
+      node = roots.first
+      3.times { node = node.visible_replies.first }
+      assert_equal "D", node.body
+      assert_equal @other.username, node.user.username
+    end
+  end
+
   private
 
   def api_headers
