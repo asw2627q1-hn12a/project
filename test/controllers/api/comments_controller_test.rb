@@ -3,11 +3,9 @@ require "test_helper"
 class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @user = users(:one)
-    @author = users(:two)
-    @other = @author
-    @submission = Submission.create!(title: "Submission for comments", url: "https://comments.example.com", points: 10, user: @author)
-    @root_comment = @submission.comments.create!(body: "Root comment text", user: @author, points: 5)
-    @reply_comment = @submission.comments.create!(body: "First reply text", parent: @root_comment, user: @user, points: 2)
+    @other = users(:two)
+    @author = @other
+    @submission = submissions(:one)
   end
 
   # --- Authentication ---
@@ -22,13 +20,13 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
     post "/api/submissions/#{@submission.id}/comments", params: { body: "Test" }
     assert_api_error :unauthorized, "unauthorized"
 
-    get "/api/comments/#{@root_comment.id}"
+    get "/api/comments/1"
     assert_api_error :unauthorized, "unauthorized"
 
-    put "/api/comments/#{@root_comment.id}", params: { body: "Updated" }
+    put "/api/comments/1", params: { body: "Updated" }
     assert_api_error :unauthorized, "unauthorized"
 
-    delete "/api/comments/#{@root_comment.id}"
+    delete "/api/comments/1"
     assert_api_error :unauthorized, "unauthorized"
 
     get "/api/submissions/#{@submission.id}"
@@ -36,7 +34,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "requests with invalid API key return 401 unauthorized" do
-    get "/api/comments/#{@root_comment.id}", headers: { "X-API-Key" => "invalid_token" }
+    get "/api/comments/1", headers: { "X-API-Key" => "invalid_token" }
     assert_api_error :unauthorized, "unauthorized"
   end
 
@@ -123,6 +121,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "creates a nested reply comment with parent_id" do
+    setup_comments
     assert_difference -> { @submission.comments.count }, 1 do
       post "/api/submissions/#{@submission.id}/comments",
            params: { body: "A nested reply", parent_id: @root_comment.id },
@@ -178,6 +177,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   # --- GET /api/comments/:id (Hector, #65) ---
 
   test "gets comment and its recursive replies tree" do
+    setup_comments
     child_reply = @submission.comments.create!(body: "Second level reply", parent: @reply_comment, user: @author)
 
     get "/api/comments/#{@root_comment.id}", headers: api_headers
@@ -202,6 +202,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "reflects voted and favorited state for API user" do
+    setup_comments
     CommentVote.create!(user: @user, comment: @root_comment)
     CommentFavorite.create!(user: @user, comment: @root_comment)
 
@@ -214,6 +215,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "gets soft-deleted comment directly with deleted true and null author and body" do
+    setup_comments
     @root_comment.soft_delete!
 
     get "/api/comments/#{@root_comment.id}", headers: api_headers
@@ -234,6 +236,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   # --- PUT/PATCH /api/comments/:id (Hector, #65) ---
 
   test "author can edit own comment" do
+    setup_comments
     put "/api/comments/#{@reply_comment.id}",
         params: { body: "Edited reply text" },
         headers: api_headers
@@ -245,6 +248,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "author can edit own comment using PATCH" do
+    setup_comments
     patch "/api/comments/#{@reply_comment.id}",
           params: { comment: { body: "Patched reply text" } },
           headers: api_headers
@@ -255,6 +259,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "non-author cannot edit comment and receives 403 forbidden" do
+    setup_comments
     put "/api/comments/#{@root_comment.id}",
         params: { body: "Hacked root text" },
         headers: api_headers
@@ -264,6 +269,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "editing a deleted comment is forbidden" do
+    setup_comments
     @reply_comment.soft_delete!
 
     put "/api/comments/#{@reply_comment.id}",
@@ -274,6 +280,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "edit comment returns 422 when body is blank" do
+    setup_comments
     put "/api/comments/#{@reply_comment.id}",
         params: { body: "" },
         headers: api_headers
@@ -293,6 +300,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   # --- DELETE /api/comments/:id (Hector, #65) ---
 
   test "author can soft delete own comment returning 204 no content" do
+    setup_comments
     delete "/api/comments/#{@reply_comment.id}", headers: api_headers
 
     assert_response :no_content
@@ -303,6 +311,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "non-author cannot delete comment and receives 403 forbidden" do
+    setup_comments
     delete "/api/comments/#{@root_comment.id}", headers: api_headers
 
     assert_api_error :forbidden, "forbidden"
@@ -310,6 +319,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "deleting an already deleted comment receives 403 forbidden" do
+    setup_comments
     @reply_comment.soft_delete!
 
     delete "/api/comments/#{@reply_comment.id}", headers: api_headers
@@ -325,6 +335,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   # --- GET /api/submissions/:id (Hector, #65) ---
 
   test "returns submission detail with full recursive comment tree" do
+    setup_comments
     get "/api/submissions/#{@submission.id}", headers: api_headers
 
     assert_response :ok
@@ -343,6 +354,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "deleted comment with visible child is retained in submission tree" do
+    setup_comments
     @root_comment.soft_delete!
 
     get "/api/submissions/#{@submission.id}", headers: api_headers
@@ -359,6 +371,7 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "deleted comment with no visible child is excluded from submission tree" do
+    setup_comments
     @reply_comment.soft_delete!
     @root_comment.soft_delete!
 
@@ -375,6 +388,12 @@ class Api::CommentsControllerTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def setup_comments
+    @submission = Submission.create!(title: "Submission for comments", url: "https://comments.example.com", points: 10, user: @author)
+    @root_comment = @submission.comments.create!(body: "Root comment text", user: @author, points: 5)
+    @reply_comment = @submission.comments.create!(body: "First reply text", parent: @root_comment, user: @user, points: 2)
+  end
 
   def api_headers(user = @user)
     { "X-API-Key" => user.api_key }
