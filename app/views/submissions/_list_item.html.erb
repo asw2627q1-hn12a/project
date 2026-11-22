@@ -14,18 +14,21 @@
     <% end %>
   </td>
   <td class="title">
-    <span class="titleline">
-      <% if action_name == "search" || submission.url.blank? %>
-        <%= link_to submission.title, submission_path(submission) %>
-      <% else %>
-        <a href="<%= submission.url %>" target="_blank" rel="noopener"><%= submission.title %></a>
-      <% end %>
-      <% if submission.domain.present? %>
-        <span class="sitebit comhead">
-          (<a href="<%= submission.url %>"><span class="sitestr"><%= submission.domain %></span></a>)
-        </span>
-      <% end %>
-    </span>
+    <div class="submission-title-row">
+      <span class="titleline">
+        <% if action_name == "search" || submission.url.blank? %>
+          <%= link_to submission.title, submission_path(submission) %>
+        <% else %>
+          <a href="<%= submission.url %>" target="_blank" rel="noopener"><%= submission.title %></a>
+        <% end %>
+        <% if submission.domain.present? %>
+          <span class="sitebit comhead">
+            (<a href="<%= submission.url %>"><span class="sitestr"><%= submission.domain %></span></a>)
+          </span>
+        <% end %>
+      </span>
+      <%= render "shared/favorite_button", record: submission, icon_only: true %>
+    </div>
   </td>
 </tr>
 
