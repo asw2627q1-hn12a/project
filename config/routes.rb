@@ -44,6 +44,7 @@ Rails.application.routes.draw do
 
   # API REST (api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
   namespace :api, defaults: { format: :json } do
+    get "newest", to: "newest#index"
     get "ask", to: "ask#index"
     get "threads", to: "comments#threads"
     resources :submissions, only: %i[index] do
