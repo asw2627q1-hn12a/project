@@ -50,10 +50,12 @@ Rails.application.routes.draw do
     resources :submissions, only: %i[index show create update destroy] do
       resource :vote, only: %i[create destroy], controller: "submission_votes"
       resource :hide, only: %i[create destroy], controller: "hidden_submissions"
+      resource :favorite, only: %i[create destroy], controller: "submission_favorites"
       resources :comments, only: %i[create]
     end
     resources :comments, only: %i[index show update destroy] do
       resource :vote, only: %i[create destroy], controller: "comment_votes"
+      resource :favorite, only: %i[create destroy], controller: "comment_favorites"
     end
   end
 
