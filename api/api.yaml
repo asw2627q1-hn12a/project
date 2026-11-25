@@ -113,27 +113,103 @@ paths:
           $ref: "#/components/responses/Unauthorized"
 
   # --- Submissions (Vinyet, #61) ---------------------------------------------
-  /submissions/{id}:
-    parameters:
-      - $ref: "#/components/parameters/SubmissionId"
-    get:
+    post:
       tags: [submissions]
-      summary: Submission detail with comments
-      description: |
-        Returns the submission with its complete comment tree (root comments, oldest first)
-        and all nested replies recursively.
-      operationId: getSubmission
-      security:
-        - ApiKeyAuth: []
+      summary: Create a URL or Ask submission
+      description: A nonblank URL creates a URL submission; otherwise an Ask submission is created. The API key user becomes the author.
+      operationId: createSubmission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionInput"
       responses:
-        "200":
-          description: Submission with its comments.
+        "201":
+          description: Created submission. The Location header points to its API detail.
+          headers:
+            Location:
+              schema:
+                type: string
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SubmissionDetail"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The URL already exists. The body contains `existing_submission_id` and Location points to its API detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateSubmissionError"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /submissions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    get:
+      tags: [submissions]
+      summary: Get a submission and its full visible comment tree
+      description: Deleted comments appear only when they have visible replies; their body and author are null.
+      operationId: getSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Submission detail, including root comments and all replies oldest first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [submissions]
+      summary: Edit your own submission
+      description: Only supplied fields are updated. Set `url` to an empty string to turn a URL submission into an Ask submission.
+      operationId: updateSubmission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionInput"
+      responses:
+        "200":
+          description: Updated submission and comment tree.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The URL belongs to another submission. The body contains `existing_submission_id`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateSubmissionError"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+    delete:
+      tags: [submissions]
+      summary: Delete your own submission and all its comments
+      operationId: deleteSubmission
+      responses:
+        "204":
+          description: Deleted, with no response body.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
 
@@ -534,6 +610,32 @@ components:
       example: 1
 
   schemas:
+    SubmissionInput:
+      type: object
+      description: Only title, url and text can be changed. An absent or blank URL makes the submission an Ask.
+      properties:
+        title:
+          type: string
+          example: "Ask HN: Good Rails resources?"
+        url:
+          type: string
+          nullable: true
+          example: https://rubyonrails.org/
+        text:
+          type: string
+          nullable: true
+          example: What would you recommend?
+
+    DuplicateSubmissionError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [existing_submission_id]
+          properties:
+            existing_submission_id:
+              type: integer
+              description: Id of the submission that already has this URL.
+
     UserSummary:
       type: object
       description: Author of a submission or comment.
