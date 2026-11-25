@@ -32,6 +32,8 @@ class User < ApplicationRecord
   validates :username, presence: true, uniqueness: true
   validates :api_key, presence: true, uniqueness: true
   validates :about, length: { maximum: 2000 }
+  # L'email és opcional (GitHub no sempre el dona), però si n'hi ha, ha de tenir format d'email.
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validate :images_are_valid
 
   after_save :purge_removed_images

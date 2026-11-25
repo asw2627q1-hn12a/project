@@ -77,6 +77,27 @@ class Api::UsersControllerTest < ActionDispatch::IntegrationTest
     assert_nil @user.reload.about
   end
 
+  test "invalid email returns 422 with the field errors" do
+    patch "/api/users/#{@user.id}", headers: api_headers, params: { email: "not-an-email" }, as: :json
+
+    assert_response :unprocessable_content
+    assert response.parsed_body.dig("details", "email").present?
+    assert_equal "one@example.com", @user.reload.email
+  end
+
+  test "empty body, malformed JSON or only username returns 400" do
+    patch "/api/users/#{@user.id}", headers: api_headers, params: {}, as: :json
+    assert_response :bad_request
+
+    patch "/api/users/#{@user.id}", headers: api_headers.merge("Content-Type" => "application/json"), params: "{not json"
+    assert_response :bad_request
+
+    patch "/api/users/#{@user.id}", headers: api_headers, params: { username: "hacked" }, as: :json
+    assert_response :bad_request
+    assert_equal "bad_request", response.parsed_body.fetch("error")
+    assert_equal "user_one", @user.reload.username
+  end
+
   test "submissions are public, newest first, without the ones hidden by the API key user" do
     older = Submission.create!(title: "Older", user: @author, created_at: 2.days.ago)
     hidden = Submission.create!(title: "Hidden by me", user: @author, created_at: 1.day.ago)
