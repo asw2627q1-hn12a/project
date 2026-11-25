@@ -4,7 +4,7 @@ module Api
 
     def create
       @comment.with_lock do
-        return render_api_error("conflict", "Deleted comments cannot be favorited", status: :conflict) if @comment.deleted?
+        return render_api_error("forbidden", "Deleted comments cannot be favorited", status: :forbidden) if @comment.deleted?
         return render_conflict if favorites.exists?
 
         favorites.create!

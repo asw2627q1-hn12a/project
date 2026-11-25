@@ -608,7 +608,7 @@ paths:
     post:
       tags: [interactions]
       summary: Favorite a comment
-      description: Adds the comment to the API key user's favorites. Returns 409 if already favorited or deleted.
+      description: Adds the comment to the API key user's favorites. Returns 403 for a deleted comment and 409 if already favorited.
       operationId: favoriteComment
       responses:
         "201":
@@ -619,6 +619,8 @@ paths:
                 $ref: "#/components/schemas/FavoriteState"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
         "409":

@@ -138,7 +138,7 @@ class Api::InteractionsTest < ActionDispatch::IntegrationTest
     @comment.soft_delete!
 
     post path, headers: api_headers
-    assert_api_error :conflict, "conflict"
+    assert_api_error :forbidden, "forbidden"
     assert_equal 1, @comment.comment_favorites.count
 
     delete path, headers: api_headers
