@@ -56,17 +56,14 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
 
     test "#{kind} favorite state persists in all relevant views and is private to the session" do
       target, favorites, path = favorite_details(kind)
-      views = kind == "submission" ? [ submission_url(@submission) ] :
+      views = kind == "submission" ? [ submission_url(@submission), news_url, newest_url,
+        search_url(q: @submission.title), submissions_user_url(@other_user) ] :
         [ comments_url, submission_url(@submission), submission_comment_url(@submission, @comment) ]
       views.each do |url|
         get url
         assert_select "form.favorite-form", count: 0
       end
       sign_in
-      if kind == "submission"
-        get news_url
-        assert_select "form.favorite-form", count: 0
-      end
       views.each do |url|
         get url
         assert_select "form[action=?] button[aria-pressed=false]", path
@@ -114,6 +111,29 @@ class FavoritesControllerTest < ActionDispatch::IntegrationTest
       end
     ensure
       ActionController::Base.allow_forgery_protection = previous
+    end
+  end
+
+  test "list controls use the viewer's favorites for own, ask, hidden and profile submissions" do
+    own = submissions(:two)
+    ask = Submission.create!(title: "Ask a question", user: @other_user)
+    @other_user.submission_favorites.create!(submission: ask)
+    sign_in
+    @user.submission_votes.create!(submission: @submission)
+    @user.submission_hides.create!(submission: @submission)
+
+    [ [ news_url, own ], [ ask_url, ask ], [ hidden_submissions_url, @submission ],
+      [ upvoted_user_url(@user), @submission ], [ favorites_user_url(@other_user), ask ] ].each do |url, submission|
+      get url
+      assert_response :success
+      assert_select "#submission_#{submission.id} .submission-title-row form[action=?] button[aria-pressed=false]",
+                    submission_favorite_path(submission)
+      post submission_favorite_path(submission), headers: { "HTTP_REFERER" => url }
+      assert_redirected_to url
+      follow_redirect!
+      assert_select "#submission_#{submission.id} .submission-title-row button[aria-pressed=true]"
+      delete submission_favorite_path(submission), headers: { "HTTP_REFERER" => url }
+      assert_redirected_to url
     end
   end
 

@@ -13,13 +13,13 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 
 ## Equip
 
-| Membre |
-| --- |
-| Vinyet Amorós |
+| Membre            |
+| ----------------- |
+| Vinyet Amorós     |
 | Martina Maldonado |
-| Héctor Gutiérrez |
-| Joel Novio |
-| Marc Rodríguez |
+| Héctor Gutiérrez  |
+| Joel Novio        |
+| Marc Rodríguez    |
 
 ## Funcionalitats actuals
 
@@ -41,7 +41,7 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 - **Gestió de submissions pròpies**: només l'autor autenticat pot editar o eliminar una submission. L'edició carrega les dades actuals i valida el títol, el format HTTP/HTTPS i les URL duplicades. Eliminar una submission elimina definitivament tots els seus comentaris i respostes, inclosos els comentaris marcats com a eliminats; es demana confirmació abans d'enviar l'eliminació.
 - **Comentaris i fils**: es poden comentar submissions i respondre comentaris a qualsevol nivell. El detall d'una submission mostra el seu arbre de comentaris i el detall d'un comentari mostra el seu subarbre. Només l'autor pot editar o eliminar un comentari propi; l'esborrat és lògic i conserva les respostes d'altres usuaris.
 - **Comentaris recents** (`/newcomments`): mostra els 30 comentaris més recents, amb enllaços al contingut i al fil. **Threads** (`/threads`) mostra els fils dels comentaris de l'usuari autenticat, evitant repetir respostes pròpies ja incloses en un altre fil.
-- **Favorite/unfavorite** de submissions i comentaris, inclosos els propis: només amb sessió, un favorit per usuari i element, amb protecció també a la BD. Marcar o retirar un favorit no canvia els punts ni la visibilitat del contingut. Els comentaris eliminats no admeten favorits nous, però es poden retirar els anteriors des del seu detall.
+- **Favorite/unfavorite** de submissions i comentaris, inclosos els propis: estrella a la dreta del títol tant al detall com als llistats de submissions (portada, novetats, Ask, cerca, ocultes i llistes del perfil). Permet afegir i retirar favorits mantenint la pàgina d’origen i els paràmetres de cerca; només amb sessió, un favorit per usuari i element, amb protecció també a la BD. Marcar o retirar un favorit no canvia els punts ni la visibilitat del contingut. Els comentaris eliminats no admeten favorits nous, però es poden retirar els anteriors des del seu detall.
 - **Perfil d'usuari** (`/users/:id`): username, antiguitat, karma, about, avatar i banner. El karma és la suma dels punts de les submissions i dels comentaris de l'usuari.
   - Qualsevol visitant pot consultar els llistats de submissions, comentaris i favorits d'un usuari.
   - Només el propietari pot consultar `hidden`, `upvoted submissions` i `upvoted comments`; la restricció es comprova al servidor.
@@ -55,15 +55,15 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 
 ## Stack
 
-| Peça | Versió / eina |
-| --- | --- |
-| Ruby | 4.0.7 (veure `.ruby-version`) |
-| Rails | 8.1.4.1 (veure `Gemfile.lock`) |
-| Base de dades | PostgreSQL extern a producció; SQLite 3 en local (CI amb tots dos) |
-| Frontend | Hotwire (Turbo + Stimulus), Importmap, Propshaft |
-| Autenticació | `omniauth` + `omniauth-github` |
-| Cua / cache / cable | Solid Queue, Solid Cache, Solid Cable |
-| Desplegament | Docker a Render (`render.yaml`) |
+| Peça                | Versió / eina                                                      |
+| ------------------- | ------------------------------------------------------------------ |
+| Ruby                | 4.0.7 (veure `.ruby-version`)                                      |
+| Rails               | 8.1.4.1 (veure `Gemfile.lock`)                                     |
+| Base de dades       | PostgreSQL extern a producció; SQLite 3 en local (CI amb tots dos) |
+| Frontend            | Hotwire (Turbo + Stimulus), Importmap, Propshaft                   |
+| Autenticació        | `omniauth` + `omniauth-github`                                     |
+| Cua / cache / cable | Solid Queue, Solid Cache, Solid Cable                              |
+| Desplegament        | Docker a Render (`render.yaml`)                                    |
 
 ## Posada en marxa en local
 
@@ -79,22 +79,22 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 git clone https://github.com/asw2627q1-hn12a/project.git
 cd project
 bin/setup --skip-server   # instal·la gems i prepara la base de dades
-bin/rails db:seed         # (opcional) carrega usuaris i submissions de prova
+bin/rails db:seed         # (opcional) carrega dades de prova: usuaris, submissions URL/Ask i fils de comentaris
 ```
 
-Els seeds afegeixen els exemples que falten sense esborrar dades ni modificar els registres existents. Es poden tornar a executar sense duplicar els mateixos exemples. Això no substitueix la persistència de la base de dades a producció.
+Els seeds afegeixen els exemples que falten (usuaris amb biografia, submissions de tipus URL i Ask, i arbres de comentaris a múltiples nivells amb diversos autors i casos per a la demo) sense esborrar dades ni modificar els registres existents. Es poden tornar a executar sense duplicar els mateixos exemples. Això no substitueix la persistència de la base de dades a producció.
 
 En Windows, es poden executar les ordres de Rails amb Ruby explícitament:
 
 ```powershell
 bundle install
 ruby bin/rails db:prepare
-ruby bin/rails db:seed   # opcional, contra la BD local
+ruby bin/rails db:seed   # opcional, carrega les dades de prova contra la BD local
 ```
 
 ### 3. Variables d'entorn (login amb GitHub)
 
-Crea una **OAuth App** a GitHub (*Settings → Developer settings → OAuth Apps*) amb:
+Crea una **OAuth App** a GitHub (_Settings → Developer settings → OAuth Apps_) amb:
 
 - **Homepage URL:** `http://localhost:3000`
 - **Authorization callback URL:** `http://localhost:3000/auth/github/callback`
@@ -145,11 +145,31 @@ ruby bin/importmap audit
 
 Les bases de dades de test han de ser independents de producció. La preparació d'una PostgreSQL de prova amb Docker es descriu a [docs/postgresql.md](docs/postgresql.md).
 
+## API keys i autenticació comuna (Taiga #72)
+
+Cada usuari nou rep una clau aleatòria de 32 caràcters amb `has_secure_token` de Rails. La migració assigna claus als usuaris existents sense modificar els seus altres atributs ni timestamps; la BD exigeix una clau no nul·la i única. Les actualitzacions de perfil i els logins posteriors conserven la clau. L'importador de SQLite genera claus quan el backup antic no en té i conserva les que ja existeixen.
+
+Desfer aquesta migració elimina les claus; si es torna a aplicar, se'n generen de noves.
+
+La clau es guarda sense xifrar per poder-la recuperar i copiar des del perfil propi: una filtració de la BD exposaria aquestes claus. Un hash no permetria tornar-les a mostrar; el xifrat recuperable requeriria gestionar claus de xifrat. No s'inclou en la serialització genèrica de `User`; els filtres existents de Rails (`:_key`) la protegeixen en inspeccions i logs de paràmetres i SQL amb binds. No imprimiu claus ni les afegiu a logs manuals.
+
+Per obtenir-la en local, inicieu sessió amb GitHub i obriu el perfil propi des del nom de la capçalera. El camp `API key:` és de només lectura: seleccioneu-lo i copieu-lo. No s'envia amb el formulari ni es pot substituir editant el perfil. No apareix als perfils aliens, als llistats o al JSON, tampoc al JSON del propietari. Les respostes del perfil propi utilitzen `Cache-Control: no-store`.
+
+Els controllers d'API han d'heretar d'`Api::BaseController`, que identifica `current_user` només amb la capçalera `X-API-Key`. La clau s'ha d'enviar a cada petició: ni la sessió web ni un paràmetre `api_key` o `user_id` substitueixen la capçalera. Si falta o no és vàlida, retorna HTTP 401 amb `{"error":"unauthorized","message":"Missing or invalid API key"}`, sempre en JSON i sense redirigir al login.
+
+La base hereta d'`ActionController::API`: les operacions d'API utilitzaran la clau explícita, mentre que la web conserva la seva autenticació per sessió i la protecció CSRF. L'autenticació no substitueix l'autorització: cada endpoint haurà de comprovar la propietat i la resta de regles de negoci. El contracte acordat utilitza el prefix `/api`.
+
+La base retorna els errors previsibles amb `{ "error": "codi", "message": "explicació" }`: paràmetres absents o JSON malformat (400), recursos no trobats (404), conflictes d'unicitat de BD (409) i validacions de `save!`/`create!` (422, amb `details` per camp). Els endpoints poden cridar `render_api_error(code, message, status:, details: nil)` per a altres errors de negoci, com el 403. Si s'utilitza `save` sense excepció, l'endpoint ha de gestionar el retorn `false`. No es retornen missatges interns de SQL ni es capturen indiscriminadament tots els errors.
+
+Els endpoints funcionals i CORS s'implementen a les tasques corresponents. Els tests de la base fan servir rutes temporals que no existeixen a l'aplicació desplegada. En integrar un endpoint, hereteu d'`Api::BaseController`, definiu la ruta sota `namespace :api` i proveu l'accés amb una clau vàlida i sense clau.
+
+Per provar l’API des de Swagger Editor, carrega `api/api.yaml`, selecciona `http://localhost:3000/api` i introdueix la clau del teu perfil local a **Authorize**. CORS permet que Swagger Editor enviï la capçalera `X-API-Key` a les rutes `/api/*`.
+
 ## Flux de treball
 
 1. Cada tasca de **Taiga** té la seva pròpia branca a GitHub.
-2. Quan la tasca està feta, s'obre una **pull request** cap a `main` i es mou a *Ready for test* a Taiga.
-3. Per fer el merge i passar la tasca a *Closed* cal que:
+2. Quan la tasca està feta, s'obre una **pull request** cap a `main` i es mou a _Ready for test_ a Taiga.
+3. Per fer el merge i passar la tasca a _Closed_ cal que:
    - **tots els jobs de la CI** passin (tests, RuboCop, Brakeman i importmap audit), i
    - **un altre membre de l'equip aprovi** la pull request.
 
@@ -203,7 +223,7 @@ config/
 db/
   migrate/       # migracions de l'esquema
   schema.rb
-  seeds.rb       # dades de prova
+  seeds.rb       # dades de prova reproduïbles (usuaris, submissions URL/Ask i fils)
 docs/
   postgresql.md  # preparació, importació i verificació del desplegament
 lib/

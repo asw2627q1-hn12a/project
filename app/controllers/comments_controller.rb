@@ -53,7 +53,8 @@ class CommentsController < ApplicationController
     respond_to do |format|
       if @comment.update(edit_comment_params)
         format.html do
-          redirect_to submission_comment_path(@submission, @comment), notice: "Changes saved."
+          redirect_to "#{return_path_or(submission_comment_path(@submission, @comment))}##{helpers.dom_id(@comment)}",
+                      notice: "Changes saved."
         end
         format.json { render json: @comment, status: :ok }
       else
@@ -68,7 +69,8 @@ class CommentsController < ApplicationController
 
     respond_to do |format|
       format.html do
-        redirect_to submission_comment_path(@submission, @comment),
+        thread_path = @comment.parent ? submission_comment_path(@submission, @comment.parent) : submission_path(@submission, anchor: "comments")
+        redirect_to return_path_after_destroy(submission_comment_path(@submission, @comment), thread_path),
                     notice: "Comment deleted. Replies have been preserved."
       end
       format.json { head :no_content }
@@ -76,15 +78,7 @@ class CommentsController < ApplicationController
   end
 
   def threads
-    comments = current_user.comments
-                 .where(deleted_at: nil)
-                 .includes(:submission, :user, replies: :user)
-                 .order(created_at: :desc)
-    own_ids = comments.map(&:id).to_set
-    # Mapa id => parent_id de tots els comentaris de les submissions afectades (una sola consulta)
-    parent_ids = Comment.where(submission_id: comments.map(&:submission_id).uniq).pluck(:id, :parent_id).to_h
-    # Evita repetir un comentari que ja surt dins del fil d'un comentari propi (a qualsevol nivell)
-    @comments = comments.reject { |comment| own_ancestor?(comment, own_ids, parent_ids) }
+    @comments = Comment.thread_roots_for(current_user)
   end
 
   private
@@ -108,15 +102,5 @@ class CommentsController < ApplicationController
       return if @comment.user == current_user && !@comment.deleted?
 
       head :forbidden
-    end
-
-    def own_ancestor?(comment, own_ids, parent_ids)
-      ancestor_id = comment.parent_id
-      while ancestor_id
-        return true if own_ids.include?(ancestor_id)
-
-        ancestor_id = parent_ids[ancestor_id]
-      end
-      false
     end
 end

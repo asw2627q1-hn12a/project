@@ -51,7 +51,15 @@ class SqliteDataImport
           model = Class.new(ActiveRecord::Base) { self.table_name = table }
           # Insert every comment first, then restore parents, regardless of ID order.
           records = table == "comments" ? rows.map { |row| row.merge("parent_id" => nil) } : rows
-          records.each_slice(100) { |batch| model.insert_all!(batch, record_timestamps: false) }
+          if table == "users"
+            # Els backups antics no tenen api_key. CREATE usa binds filtrats als logs.
+            model.record_timestamps = false
+            records.each do |row|
+              model.create!(row.merge("api_key" => row["api_key"].presence || User.generate_unique_secure_token(length: 32)))
+            end
+          else
+            records.each_slice(100) { |batch| model.insert_all!(batch, record_timestamps: false) }
+          end
           counts[table] = rows.length
         end
 

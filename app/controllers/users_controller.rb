@@ -4,6 +4,7 @@ class UsersController < ApplicationController
   before_action :set_user, only: %i[ show edit update destroy submissions comments favorites favorite_comments ] + PRIVATE_LISTS
   before_action :require_login, only: %i[ new create edit update destroy ] + PRIVATE_LISTS
   before_action :require_owner, only: %i[ edit update destroy ] + PRIVATE_LISTS
+  before_action :prevent_private_profile_caching, only: %i[ show update ]
 
   # GET /users or /users.json
   def index
@@ -97,6 +98,10 @@ class UsersController < ApplicationController
   end
 
   private
+    def prevent_private_profile_caching
+      no_store if @user == current_user
+    end
+
     # Use callbacks to share common setup or constraints between actions.
     def set_user
       @user = User.find(params.expect(:id))

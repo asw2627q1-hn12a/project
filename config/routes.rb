@@ -42,6 +42,38 @@ Rails.application.routes.draw do
     end
   end
 
+  # API REST (api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
+  namespace :api, defaults: { format: :json } do
+    get "newest", to: "newest#index"
+    # Perfils i els seus llistats (Taiga #69): /api/users/:id i /api/users/:id/<llista>
+    resources :users, only: %i[ show update ] do
+      member do
+        get :submissions
+        get :comments
+        get :favorites
+        get :favorite_comments
+        get :upvoted
+        get :upvoted_comments
+        get :hidden
+      end
+      # Avatar i banner (Taiga #70): PUT (multipart) i DELETE /api/users/:user_id/avatar|banner
+      resource :avatar, only: %i[ update destroy ], controller: "user_images", defaults: { kind: "avatar" }
+      resource :banner, only: %i[ update destroy ], controller: "user_images", defaults: { kind: "banner" }
+    end
+    get "ask", to: "ask#index"
+    get "threads", to: "comments#threads"
+    resources :submissions, only: %i[index show create update destroy] do
+      resource :vote, only: %i[create destroy], controller: "submission_votes"
+      resource :hide, only: %i[create destroy], controller: "hidden_submissions"
+      resource :favorite, only: %i[create destroy], controller: "submission_favorites"
+      resources :comments, only: %i[create]
+    end
+    resources :comments, only: %i[index show update destroy] do
+      resource :vote, only: %i[create destroy], controller: "comment_votes"
+      resource :favorite, only: %i[create destroy], controller: "comment_favorites"
+    end
+  end
+
   # OmniAuth routes
   get "/auth/:provider/callback", to: "sessions#create"
   # Rep el callback després que OmniAuth processi el codi.

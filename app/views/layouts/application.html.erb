@@ -37,7 +37,8 @@
             <%= link_to current_user.username, user_path(current_user), class: "hn-user" %>
             <%= button_to "logout", logout_path, method: :post, class: "hn-auth-button" %>
           <% else %>
-            <%= button_to "login", "/auth/github", method: :post, form: { data: { turbo: false } }, class: "hn-auth-button" %>
+            <%= button_to "login", "/auth/github", method: :post, params: { origin: request.fullpath },
+              form: { data: { turbo: false } }, class: "hn-auth-button" %>
           <% end %>
         </div>
       </header>

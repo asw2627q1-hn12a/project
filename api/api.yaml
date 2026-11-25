@@ -1,0 +1,1427 @@
+openapi: 3.0.3
+info:
+  title: Hacker News clone API (ASW hn12a)
+  version: 1.0.0
+  description: |
+    REST API of the Hacker News clone built for ASW course at FIB, UPC.
+    It exposes the same functionality as the web application, except login/registration.
+
+    **Authentication.** Every request must include the API key of a user in the `X-API-Key` header.
+    Each user can copy their key from their own profile page in the web application.
+    Requests that change data (POST, PUT, PATCH, DELETE) are always performed on behalf of that user.
+
+    **Format.** Request and response bodies are JSON (`application/json`), except file uploads,
+    which use `multipart/form-data`. Dates use ISO 8601 (UTC).
+
+    **Errors.** Every error response has the same JSON body (`Error` schema):
+    `{ "error": "<code>", "message": "<human readable text>" }`. Validation errors (422) also include
+    `details` with the messages of each invalid field.
+  contact:
+    name: hn12a team
+    url: https://github.com/asw2627q1-hn12a/project
+
+servers:
+  - url: https://asw2627q1-hn12-project.onrender.com/api
+    description: Production (Render)
+  - url: http://localhost:3000/api
+    description: Local development
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: submissions
+    description: Create, view, edit and delete submissions (URL and Ask).
+  - name: lists
+    description: Submission and comment lists (main page, search, newest, ask, comments, threads).
+  - name: comments
+    description: Comments and nested replies.
+  - name: interactions
+    description: Votes, hides and favorites.
+  - name: users
+    description: User profiles, their lists and their images.
+
+paths:
+  # ---------------------------------------------------------------------------
+  # Each endpoint is documented by the person who implements it, in the same PR
+  # as the code. Keep the endpoints of your task inside your section to avoid
+  # merge conflicts. Reuse the shared parameters, schemas and responses below.
+  #
+  # Agreed routes (owner, Taiga task):
+  #   lists        GET    /submissions                       Marc     #76  (main page; ?q= search)
+  #   lists        GET    /newest                            Hector   #66
+  #   lists        GET    /ask                               Martina  #71
+  #   lists        GET    /comments                          Marc     #77  (recent comments)
+  #   lists        GET    /threads                           Marc     #77  (comments of the API key user)
+  #   submissions  POST   /submissions                       Vinyet   #61
+  #   submissions  GET    /submissions/{id}                  Vinyet   #61  (with the full comment tree)
+  #   submissions  PUT    /submissions/{id}                  Vinyet   #61  (own)
+  #   submissions  DELETE /submissions/{id}                  Vinyet   #61  (own)
+  #   comments     POST   /submissions/{id}/comments         Hector   #65  (parent_id for replies)
+  #   comments     GET    /comments/{id}                     Hector   #65  (with its subtree)
+  #   comments     PUT    /comments/{id}                     Hector   #65  (own)
+  #   comments     DELETE /comments/{id}                     Hector   #65  (own, soft delete)
+  #   interactions POST|DELETE /submissions/{id}/vote        Joel     #73
+  #   interactions POST|DELETE /comments/{id}/vote           Joel     #73
+  #   interactions POST|DELETE /submissions/{id}/hide        Joel     #73
+  #   interactions POST|DELETE /submissions/{id}/favorite    Vinyet   #62
+  #   interactions POST|DELETE /comments/{id}/favorite       Vinyet   #62
+  #   users        GET|PATCH  /users/{id}                    Martina  #69  (PATCH: own)
+  #   users        GET    /users/{id}/submissions            Martina  #69
+  #   users        GET    /users/{id}/comments               Martina  #69
+  #   users        GET    /users/{id}/favorites              Martina  #69
+  #   users        GET    /users/{id}/favorite_comments      Martina  #69
+  #   users        GET    /users/{id}/upvoted                Martina  #69  (own)
+  #   users        GET    /users/{id}/upvoted_comments       Martina  #69  (own)
+  #   users        GET    /users/{id}/hidden                 Martina  #69  (own)
+  #   users        PUT|DELETE /users/{id}/avatar             Martina  #70  (PUT: multipart, own)
+  #   users        PUT|DELETE /users/{id}/banner             Martina  #70  (PUT: multipart, own)
+  # ---------------------------------------------------------------------------
+
+  # --- Lists: main page and search (Marc, #76) -------------------------------
+  /submissions:
+    get:
+      tags: [lists]
+      summary: Main page and search
+      description: |
+        Returns the submissions (URL and Ask) ordered by relevance: points descending and, on ties,
+        newest first. Submissions hidden by the API key user are not included.
+        With `q`, returns only the submissions whose title contains the text (case insensitive),
+        with the same order.
+      operationId: listSubmissions
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Text to search in the titles. Blank values are rejected with 400.
+          schema:
+            type: string
+            minLength: 1
+          example: rails
+      responses:
+        "200":
+          description: Submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # --- Submissions (Vinyet, #61) ---------------------------------------------
+    post:
+      tags: [submissions]
+      summary: Create a URL or Ask submission
+      description: A nonblank URL creates a URL submission; otherwise an Ask submission is created. The API key user becomes the author.
+      operationId: createSubmission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionInput"
+      responses:
+        "201":
+          description: Created submission. The Location header points to its API detail.
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: The URL already exists. The body contains `existing_submission_id` and Location points to its API detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateSubmissionError"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /submissions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    get:
+      tags: [submissions]
+      summary: Get a submission and its full visible comment tree
+      description: Deleted comments appear only when they have visible replies; their body and author are null.
+      operationId: getSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Submission detail, including root comments and all replies oldest first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [submissions]
+      summary: Edit your own submission
+      description: Only supplied fields are updated. Set `url` to an empty string to turn a URL submission into an Ask submission.
+      operationId: updateSubmission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmissionInput"
+      responses:
+        "200":
+          description: Updated submission and comment tree.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The URL belongs to another submission. The body contains `existing_submission_id`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DuplicateSubmissionError"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+    delete:
+      tags: [submissions]
+      summary: Delete your own submission and all its comments
+      operationId: deleteSubmission
+      responses:
+        "204":
+          description: Deleted, with no response body.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # --- Lists: newest (Hector, #66) -------------------------------------------
+  /newest:
+    get:
+      tags: [lists]
+      summary: Newest submissions
+      description: |
+        Returns the submissions (URL and Ask) ordered by publication date descending (`created_at: :desc`)
+        and, on ties, newest first (`id: :desc`). Submissions hidden by the API key user are not included.
+      operationId: listNewestSubmissions
+      responses:
+        "200":
+          description: Submissions ordered from newest to oldest.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+              example:
+                - id: 18
+                  title: "Ruby on Rails 8.1 Release Candidate"
+                  url: "https://rubyonrails.org/2026/11/rails-8-1-rc"
+                  text: null
+                  submission_type: url
+                  domain: "rubyonrails.org"
+                  points: 1
+                  comments_count: 0
+                  created_at: "2026-11-22T18:00:00.000Z"
+                  author:
+                    id: 2
+                    username: hector
+                  voted: false
+                  hidden: false
+                  favorited: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # --- Lists: ask (Martina, #71) ---------------------------------------------
+  /ask:
+    get:
+      tags: [lists]
+      summary: Ask submissions
+      description: |
+        Returns only the Ask submissions (the ones without URL), ordered by relevance like the
+        main page: points descending and, on ties, newest first. Submissions hidden by the API key
+        user are not included, so `hidden` is always false in this list.
+      operationId: listAskSubmissions
+      responses:
+        "200":
+          description: Ask submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+              example:
+                - id: 14
+                  title: "Ask HN: How do you organise a team project at university?"
+                  url: null
+                  text: We are five people and we always end up with merge conflicts.
+                  submission_type: ask
+                  domain: null
+                  points: 23
+                  comments_count: 4
+                  created_at: "2026-11-14T18:30:00.000Z"
+                  author:
+                    id: 3
+                    username: matz
+                  voted: true
+                  hidden: false
+                  favorited: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # --- Lists: comments and threads (Marc, #77) -------------------------------
+  /comments:
+    get:
+      tags: [lists]
+      summary: Recent comments
+      description: |
+        Returns the 30 most recent comments of all submissions, newest first, like the web page
+        /newcomments. Deleted comments keep their place with `body` and `author` null.
+      operationId: listRecentComments
+      responses:
+        "200":
+          description: Recent comments, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /threads:
+    get:
+      tags: [lists]
+      summary: Threads of the API key user
+      description: |
+        Returns the comments of the API key user with all their visible replies, newest first, like
+        the web page /threads. A comment that already appears inside the thread of another own
+        comment is not repeated, and own deleted comments do not start a thread.
+      operationId: listThreads
+      responses:
+        "200":
+          description: Own comments with their reply trees.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommentTree"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+
+  # --- Comments (Hector, #65) ------------------------------------------------
+  /submissions/{id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [comments]
+      summary: Create a comment or reply
+      description: |
+        Creates a root comment for the submission, or a nested reply if `parent_id` is supplied.
+        The parent comment must belong to the same submission.
+      operationId: createComment
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Comment created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentTree"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /comments/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CommentId"
+    get:
+      tags: [comments]
+      summary: Get a comment with its replies
+      description: |
+        Returns the comment and its subtree of replies recursively, oldest first.
+        If the comment has been soft deleted, `body` and `author` are null and `deleted` is true.
+      operationId: getComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Comment with its replies.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentTree"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [comments]
+      summary: Edit a comment
+      description: |
+        Updates the text (`body`) of a comment. Only the author can edit it.
+        Deleted comments cannot be edited and return 403 Forbidden.
+      operationId: updateComment
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentUpdateInput"
+      responses:
+        "200":
+          description: Comment updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentTree"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+    delete:
+      tags: [comments]
+      summary: Soft delete a comment
+      description: |
+        Soft deletes the comment, blanking its text and setting `deleted_at`.
+        Existing replies are preserved. Only the author can delete it.
+        Deleting an already deleted comment returns 403 Forbidden.
+      operationId: deleteComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Comment deleted. Replies preserved.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  # --- Votes and hides (Joel, #73) -------------------------------------------
+  /submissions/{id}/vote:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [interactions]
+      summary: Vote for a submission
+      description: Returns 403 for your own submission and 409 if you have already voted.
+      operationId: voteSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "201":
+          description: Vote created. Points include the new vote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove the current user's vote from a submission
+      description: Returns 409 if you have no vote to remove.
+      operationId: unvoteSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Vote removed and one point deducted.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /comments/{id}/vote:
+    parameters:
+      - $ref: "#/components/parameters/CommentId"
+    post:
+      tags: [interactions]
+      summary: Vote for a comment
+      description: Returns 403 for your own comment or a deleted comment and 409 if you have already voted.
+      operationId: voteComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "201":
+          description: Vote created. Points include the new vote.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove the current user's vote from a comment
+      description: You can remove an existing vote from a deleted comment. Returns 409 if you have no vote to remove.
+      operationId: unvoteComment
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Vote removed and one point deducted.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /submissions/{id}/hide:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [interactions]
+      summary: Hide a submission
+      description: Returns 409 if the submission is already hidden for you.
+      operationId: hideSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "201":
+          description: Submission hidden for the API key user. Points are unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmissionHideState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Unhide a submission
+      description: Returns 409 if the submission is not hidden for you.
+      operationId: unhideSubmission
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "204":
+          description: Submission unhidden for the API key user.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  # --- Favorites (Vinyet, #62) -----------------------------------------------
+  /submissions/{id}/favorite:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [interactions]
+      summary: Favorite a submission
+      description: Adds the submission to the API key user's favorites. Returns 409 if already favorited.
+      operationId: favoriteSubmission
+      responses:
+        "201":
+          description: Favorite created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove a submission from favorites
+      description: Returns 409 if the API key user has not favorited it.
+      operationId: unfavoriteSubmission
+      responses:
+        "204":
+          description: Favorite removed.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /comments/{id}/favorite:
+    parameters:
+      - $ref: "#/components/parameters/CommentId"
+    post:
+      tags: [interactions]
+      summary: Favorite a comment
+      description: Adds the comment to the API key user's favorites. Returns 403 for a deleted comment and 409 if already favorited.
+      operationId: favoriteComment
+      responses:
+        "201":
+          description: Favorite created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove a comment from favorites
+      description: An existing favorite can be removed after the comment is deleted. Returns 409 if the API key user has not favorited it.
+      operationId: unfavoriteComment
+      responses:
+        "204":
+          description: Favorite removed.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  # --- Users and their lists (Martina, #69) ----------------------------------
+  /users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: User profile
+      description: |
+        Public profile of any user. `email` is only included in the profile of the API key user.
+        `avatar_url` and `banner_url` point to the uploaded images or, if there are none, to the
+        default ones.
+      operationId: getUser
+      responses:
+        "200":
+          description: The profile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 6
+                username: martinamaldox
+                created_at: "2026-11-01T10:00:00.000Z"
+                karma: 42
+                about: Student at FIB.
+                email: martina@example.com
+                avatar_url: https://asw2627q1-hn12-project.onrender.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOns.../avatar.png
+                banner_url: https://asw2627q1-hn12-project.onrender.com/assets/default-banner-4f2c9a1b.svg
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [users]
+      summary: Edit own profile
+      description: |
+        Changes the `about` and the `email` of the API key user. Only the fields that are sent
+        change. The username comes from GitHub and cannot be changed: it is ignored if it is sent.
+        Other users get 403. The images are changed with the avatar and banner endpoints.
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                about:
+                  type: string
+                  nullable: true
+                  maxLength: 2000
+                email:
+                  type: string
+                  format: email
+            example:
+              about: Student at FIB. I like Ruby.
+      responses:
+        "200":
+          description: The updated profile (with `email`, because it is the API key user).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /users/{id}/submissions:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Submissions of a user
+      description: |
+        Submissions created by the user, newest first. Submissions hidden by the API key user are
+        not included.
+      operationId: listUserSubmissions
+      responses:
+        "200":
+          description: Submissions of the user, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Comments of a user
+      description: Comments written by the user, newest first. Deleted comments are not included.
+      operationId: listUserComments
+      responses:
+        "200":
+          description: Comments of the user, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+              example:
+                - id: 31
+                  submission_id: 14
+                  parent_id: null
+                  body: We use one branch per task and small pull requests.
+                  deleted: false
+                  points: 2
+                  created_at: "2026-11-15T09:12:00.000Z"
+                  author:
+                    id: 6
+                    username: martinamaldox
+                  voted: false
+                  favorited: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/favorites:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Favorite submissions of a user
+      description: |
+        Submissions that the user has marked as favorite, the most recently marked first.
+        Favorites are public, like in Hacker News. Submissions hidden by the API key user are not
+        included.
+      operationId: listUserFavoriteSubmissions
+      responses:
+        "200":
+          description: Favorite submissions, the most recently marked first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/favorite_comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Favorite comments of a user
+      description: |
+        Comments that the user has marked as favorite, the most recently marked first. Favorites
+        are public. Deleted comments are not included.
+      operationId: listUserFavoriteComments
+      responses:
+        "200":
+          description: Favorite comments, the most recently marked first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/upvoted:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Upvoted submissions (own)
+      description: |
+        Submissions voted by the user, ordered by relevance (points descending and, on ties,
+        newest first). Only the API key user can see their own list: other users get 403.
+        The voted comments are in `/users/{id}/upvoted_comments`.
+      operationId: listUserUpvotedSubmissions
+      responses:
+        "200":
+          description: Upvoted submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/upvoted_comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Upvoted comments (own)
+      description: |
+        Comments voted by the user, newest first. Deleted comments are not included. Only the API
+        key user can see their own list: other users get 403.
+      operationId: listUserUpvotedComments
+      responses:
+        "200":
+          description: Upvoted comments, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/hidden:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Hidden submissions (own)
+      description: |
+        Submissions hidden by the user, ordered by relevance (points descending and, on ties,
+        newest first), so `hidden` is always true in this list. Only the API key user can see
+        their own list: other users get 403.
+      operationId: listUserHiddenSubmissions
+      responses:
+        "200":
+          description: Hidden submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+
+  # --- Avatar and banner (Martina, #70) --------------------------------------
+  /users/{id}/avatar:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: [users]
+      summary: Upload own avatar
+      description: |
+        Replaces the avatar of the API key user with the uploaded image (PNG, JPEG, GIF or WebP,
+        2 MB at most). The web application crops it to 400x400 before uploading; the API stores
+        the image as it is sent. Other users get 403.
+      operationId: updateUserAvatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file.
+      responses:
+        "200":
+          description: The updated profile, with the new `avatar_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: The file is not a supported image or is bigger than 2 MB.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: validation_failed
+                message: Validation failed
+                details:
+                  avatar: ["must be a PNG, JPEG, GIF or WebP image"]
+    delete:
+      tags: [users]
+      summary: Delete own avatar
+      description: |
+        Deletes the uploaded avatar of the API key user, so `avatar_url` shows the default one
+        again. If there is no uploaded avatar, nothing changes. Other users get 403.
+      operationId: deleteUserAvatar
+      responses:
+        "200":
+          description: The updated profile, with the default `avatar_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/banner:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: [users]
+      summary: Upload own banner
+      description: |
+        Replaces the banner of the API key user with the uploaded image (PNG, JPEG, GIF or WebP,
+        2 MB at most). The web application crops it to 1200x200 before uploading; the API stores
+        the image as it is sent. Other users get 403.
+      operationId: updateUserBanner
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file.
+      responses:
+        "200":
+          description: The updated profile, with the new `banner_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: The file is not a supported image or is bigger than 2 MB.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: validation_failed
+                message: Validation failed
+                details:
+                  banner: ["must be 2 MB or smaller"]
+    delete:
+      tags: [users]
+      summary: Delete own banner
+      description: |
+        Deletes the uploaded banner of the API key user, so `banner_url` shows the default one
+        again. If there is no uploaded banner, nothing changes. Other users get 403.
+      operationId: deleteUserBanner
+      responses:
+        "200":
+          description: The updated profile, with the default `banner_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key of the user, shown on their own profile page in the web application.
+
+  parameters:
+    SubmissionId:
+      name: id
+      in: path
+      required: true
+      description: Submission id.
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    CommentId:
+      name: id
+      in: path
+      required: true
+      description: Comment id.
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: User id.
+      schema:
+        type: integer
+        minimum: 1
+      example: 1
+
+  schemas:
+    SubmissionInput:
+      type: object
+      description: Only title, url and text can be changed. An absent or blank URL makes the submission an Ask.
+      properties:
+        title:
+          type: string
+          example: "Ask HN: Good Rails resources?"
+        url:
+          type: string
+          nullable: true
+          example: https://rubyonrails.org/
+        text:
+          type: string
+          nullable: true
+          example: What would you recommend?
+
+    DuplicateSubmissionError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          required: [existing_submission_id]
+          properties:
+            existing_submission_id:
+              type: integer
+              description: Id of the submission that already has this URL.
+
+    UserSummary:
+      type: object
+      description: Author of a submission or comment.
+      required: [id, username]
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: marc
+
+    NullableUserSummary:
+      type: object
+      nullable: true
+      description: Author of a comment, or null when the comment has been deleted.
+      required: [id, username]
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: marc
+
+    User:
+      type: object
+      description: Public profile. `email` is only included in the profile of the API key user.
+      required: [id, username, created_at, karma, about, avatar_url, banner_url]
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: marc
+        created_at:
+          type: string
+          format: date-time
+        karma:
+          type: integer
+          description: Sum of the points of the user's submissions and comments.
+          example: 42
+        about:
+          type: string
+          nullable: true
+          maxLength: 2000
+          example: Student at FIB.
+        email:
+          type: string
+          format: email
+          example: marc@example.com
+        avatar_url:
+          type: string
+          format: uri
+          description: Uploaded avatar or the default one.
+        banner_url:
+          type: string
+          format: uri
+          description: Uploaded banner or the default one.
+
+    Submission:
+      type: object
+      description: Submission as shown in the lists. `url` and `domain` are null for Ask submissions.
+      required:
+        [id, title, url, text, submission_type, domain, points, comments_count, created_at, author, voted, hidden, favorited]
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Ruby on Rails 8.0 released
+        url:
+          type: string
+          format: uri
+          nullable: true
+          example: https://rubyonrails.org/
+        text:
+          type: string
+          nullable: true
+          example: null
+        submission_type:
+          type: string
+          enum: [url, ask]
+          example: url
+        domain:
+          type: string
+          nullable: true
+          example: rubyonrails.org
+        points:
+          type: integer
+          example: 12
+        comments_count:
+          type: integer
+          description: Number of comments, excluding deleted ones.
+          example: 3
+        created_at:
+          type: string
+          format: date-time
+        author:
+          $ref: "#/components/schemas/UserSummary"
+        voted:
+          type: boolean
+          description: Whether the API key user has voted it.
+        hidden:
+          type: boolean
+          description: Whether the API key user has hidden it.
+        favorited:
+          type: boolean
+          description: Whether the API key user has it in their favorites.
+
+    SubmissionDetail:
+      description: Submission with its complete comment tree (root comments, oldest first).
+      allOf:
+        - $ref: "#/components/schemas/Submission"
+        - type: object
+          required: [comments]
+          properties:
+            comments:
+              type: array
+              items:
+                $ref: "#/components/schemas/CommentTree"
+
+    Comment:
+      type: object
+      description: |
+        Comment or reply. A deleted comment keeps its place in the tree, but `body` and `author`
+        are null and `deleted` is true.
+      required: [id, submission_id, parent_id, body, deleted, points, created_at, author, voted, favorited]
+      properties:
+        id:
+          type: integer
+          example: 7
+        submission_id:
+          type: integer
+          example: 1
+        parent_id:
+          type: integer
+          nullable: true
+          description: Id of the comment it replies to, or null for a root comment.
+          example: null
+        body:
+          type: string
+          nullable: true
+          example: Great news!
+        deleted:
+          type: boolean
+          example: false
+        points:
+          type: integer
+          example: 1
+        created_at:
+          type: string
+          format: date-time
+        author:
+          $ref: "#/components/schemas/NullableUserSummary"
+        voted:
+          type: boolean
+          description: Whether the API key user has voted it.
+        favorited:
+          type: boolean
+          description: Whether the API key user has it in their favorites.
+
+    CommentTree:
+      description: Comment with all its replies, recursively (oldest first).
+      allOf:
+        - $ref: "#/components/schemas/Comment"
+        - type: object
+          required: [replies]
+          properties:
+            replies:
+              type: array
+              items:
+                $ref: "#/components/schemas/CommentTree"
+
+    CommentInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          description: Comment text.
+          example: Great news!
+        parent_id:
+          type: integer
+          nullable: true
+          description: Id of the comment to reply to, or null for a root comment.
+          example: null
+
+    CommentUpdateInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          description: New comment text.
+          example: Updated comment text.
+
+    VoteState:
+      type: object
+      required: [id, points, voted]
+      properties:
+        id:
+          type: integer
+        points:
+          type: integer
+        voted:
+          type: boolean
+          enum: [true]
+
+    SubmissionHideState:
+      type: object
+      required: [id, points, hidden]
+      properties:
+        id:
+          type: integer
+        points:
+          type: integer
+        hidden:
+          type: boolean
+          enum: [true]
+
+    FavoriteState:
+      type: object
+      required: [id, favorited]
+      properties:
+        id:
+          type: integer
+        favorited:
+          type: boolean
+          enum: [true]
+
+    Error:
+      type: object
+      description: Body of every error response.
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          description: Stable error code.
+          enum: [bad_request, unauthorized, forbidden, not_found, conflict, validation_failed]
+          example: not_found
+        message:
+          type: string
+          description: Human readable explanation.
+          example: Submission not found
+        details:
+          type: object
+          description: Only for `validation_failed` (422). Messages of each invalid field.
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            title: ["can't be blank"]
+
+  responses:
+    BadRequest:
+      description: The request is malformed (invalid JSON, missing or invalid parameter).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: bad_request
+            message: "param is missing or the value is empty: submission"
+    Unauthorized:
+      description: The `X-API-Key` header is missing or does not belong to any user.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: unauthorized
+            message: Missing or invalid API key
+    Forbidden:
+      description: The API key user is not allowed to do this (for example, it is not the owner).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: forbidden
+            message: You can only modify your own content
+    NotFound:
+      description: The resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: not_found
+            message: Submission not found
+    Conflict:
+      description: The request conflicts with the current state (for example, a URL already submitted).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: conflict
+            message: This URL has already been submitted
+    ValidationFailed:
+      description: The data does not pass the server validations.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error: validation_failed
+            message: Validation failed
+            details:
+              title: ["can't be blank"]
