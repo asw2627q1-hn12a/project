@@ -757,6 +757,146 @@ paths:
 
 
   # --- Avatar and banner (Martina, #70) --------------------------------------
+  /users/{id}/avatar:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: [users]
+      summary: Upload own avatar
+      description: |
+        Replaces the avatar of the API key user with the uploaded image (PNG, JPEG, GIF or WebP,
+        2 MB at most). The web application crops it to 400x400 before uploading; the API stores
+        the image as it is sent. Other users get 403.
+      operationId: updateUserAvatar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file.
+      responses:
+        "200":
+          description: The updated profile, with the new `avatar_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: The file is not a supported image or is bigger than 2 MB.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: validation_failed
+                message: Validation failed
+                details:
+                  avatar: ["must be a PNG, JPEG, GIF or WebP image"]
+    delete:
+      tags: [users]
+      summary: Delete own avatar
+      description: |
+        Deletes the uploaded avatar of the API key user, so `avatar_url` shows the default one
+        again. If there is no uploaded avatar, nothing changes. Other users get 403.
+      operationId: deleteUserAvatar
+      responses:
+        "200":
+          description: The updated profile, with the default `avatar_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/banner:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: [users]
+      summary: Upload own banner
+      description: |
+        Replaces the banner of the API key user with the uploaded image (PNG, JPEG, GIF or WebP,
+        2 MB at most). The web application crops it to 1200x200 before uploading; the API stores
+        the image as it is sent. Other users get 403.
+      operationId: updateUserBanner
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The image file.
+      responses:
+        "200":
+          description: The updated profile, with the new `banner_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: The file is not a supported image or is bigger than 2 MB.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: validation_failed
+                message: Validation failed
+                details:
+                  banner: ["must be 2 MB or smaller"]
+    delete:
+      tags: [users]
+      summary: Delete own banner
+      description: |
+        Deletes the uploaded banner of the API key user, so `banner_url` shows the default one
+        again. If there is no uploaded banner, nothing changes. Other users get 403.
+      operationId: deleteUserBanner
+      responses:
+        "200":
+          description: The updated profile, with the default `banner_url`.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 
 components:
   securitySchemes:
