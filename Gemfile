@@ -71,6 +71,6 @@ end
 
 gem "dotenv-rails", "~> 3.2", groups: [ :development, :test ]
 
-gem "aws-sdk-s3", "~> 1.0", require: false
+gem "aws-sdk-s3", "~> 1.245", require: false
 
 gem "rack-cors", "~> 3.0"
