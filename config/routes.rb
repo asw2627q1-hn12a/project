@@ -56,6 +56,9 @@ Rails.application.routes.draw do
         get :upvoted_comments
         get :hidden
       end
+      # Avatar i banner (Taiga #70): PUT (multipart) i DELETE /api/users/:user_id/avatar|banner
+      resource :avatar, only: %i[ update destroy ], controller: "user_images", defaults: { kind: "avatar" }
+      resource :banner, only: %i[ update destroy ], controller: "user_images", defaults: { kind: "banner" }
     end
     get "ask", to: "ask#index"
     get "threads", to: "comments#threads"
