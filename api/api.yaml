@@ -569,6 +569,268 @@ paths:
   # --- Favorites (Vinyet, #62) -----------------------------------------------
 
   # --- Users and their lists (Martina, #69) ----------------------------------
+  /users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: User profile
+      description: |
+        Public profile of any user. `email` is only included in the profile of the API key user.
+        `avatar_url` and `banner_url` point to the uploaded images or, if there are none, to the
+        default ones.
+      operationId: getUser
+      responses:
+        "200":
+          description: The profile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              example:
+                id: 6
+                username: martinamaldox
+                created_at: "2026-11-01T10:00:00.000Z"
+                karma: 42
+                about: Student at FIB.
+                email: martina@example.com
+                avatar_url: https://asw2627q1-hn12-project.onrender.com/rails/active_storage/blobs/redirect/eyJfcmFpbHMiOns.../avatar.png
+                banner_url: https://asw2627q1-hn12-project.onrender.com/assets/default-banner-4f2c9a1b.svg
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [users]
+      summary: Edit own profile
+      description: |
+        Changes the `about` and the `email` of the API key user. Only the fields that are sent
+        change. The username comes from GitHub and cannot be changed: it is ignored if it is sent.
+        Other users get 403. The images are changed with the avatar and banner endpoints.
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                about:
+                  type: string
+                  nullable: true
+                  maxLength: 2000
+                email:
+                  type: string
+                  format: email
+            example:
+              about: Student at FIB. I like Ruby.
+      responses:
+        "200":
+          description: The updated profile (with `email`, because it is the API key user).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+
+  /users/{id}/submissions:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Submissions of a user
+      description: |
+        Submissions created by the user, newest first. Submissions hidden by the API key user are
+        not included.
+      operationId: listUserSubmissions
+      responses:
+        "200":
+          description: Submissions of the user, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Comments of a user
+      description: Comments written by the user, newest first. Deleted comments are not included.
+      operationId: listUserComments
+      responses:
+        "200":
+          description: Comments of the user, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+              example:
+                - id: 31
+                  submission_id: 14
+                  parent_id: null
+                  body: We use one branch per task and small pull requests.
+                  deleted: false
+                  points: 2
+                  created_at: "2026-11-15T09:12:00.000Z"
+                  author:
+                    id: 6
+                    username: martinamaldox
+                  voted: false
+                  favorited: true
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/favorites:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Favorite submissions of a user
+      description: |
+        Submissions that the user has marked as favorite, the most recently marked first.
+        Favorites are public, like in Hacker News. Submissions hidden by the API key user are not
+        included.
+      operationId: listUserFavoriteSubmissions
+      responses:
+        "200":
+          description: Favorite submissions, the most recently marked first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/favorite_comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Favorite comments of a user
+      description: |
+        Comments that the user has marked as favorite, the most recently marked first. Favorites
+        are public. Deleted comments are not included.
+      operationId: listUserFavoriteComments
+      responses:
+        "200":
+          description: Favorite comments, the most recently marked first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/upvoted:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Upvoted submissions (own)
+      description: |
+        Submissions voted by the user, ordered by relevance (points descending and, on ties,
+        newest first). Only the API key user can see their own list: other users get 403.
+        The voted comments are in `/users/{id}/upvoted_comments`.
+      operationId: listUserUpvotedSubmissions
+      responses:
+        "200":
+          description: Upvoted submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/upvoted_comments:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Upvoted comments (own)
+      description: |
+        Comments voted by the user, newest first. Deleted comments are not included. Only the API
+        key user can see their own list: other users get 403.
+      operationId: listUserUpvotedComments
+      responses:
+        "200":
+          description: Upvoted comments, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/hidden:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [users]
+      summary: Hidden submissions (own)
+      description: |
+        Submissions hidden by the user, ordered by relevance (points descending and, on ties,
+        newest first), so `hidden` is always true in this list. Only the API key user can see
+        their own list: other users get 403.
+      operationId: listUserHiddenSubmissions
+      responses:
+        "200":
+          description: Hidden submissions ordered by relevance.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Submission"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
 
   # --- Avatar and banner (Martina, #70) --------------------------------------
 

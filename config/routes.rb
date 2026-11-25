@@ -45,6 +45,18 @@ Rails.application.routes.draw do
   # API REST (api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
   namespace :api, defaults: { format: :json } do
     get "newest", to: "newest#index"
+    # Perfils i els seus llistats (Taiga #69): /api/users/:id i /api/users/:id/<llista>
+    resources :users, only: %i[ show update ] do
+      member do
+        get :submissions
+        get :comments
+        get :favorites
+        get :favorite_comments
+        get :upvoted
+        get :upvoted_comments
+        get :hidden
+      end
+    end
     get "ask", to: "ask#index"
     get "threads", to: "comments#threads"
     resources :submissions, only: %i[index show create update destroy] do
