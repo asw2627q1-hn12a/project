@@ -567,6 +567,79 @@ paths:
           $ref: "#/components/responses/Conflict"
 
   # --- Favorites (Vinyet, #62) -----------------------------------------------
+  /submissions/{id}/favorite:
+    parameters:
+      - $ref: "#/components/parameters/SubmissionId"
+    post:
+      tags: [interactions]
+      summary: Favorite a submission
+      description: Adds the submission to the API key user's favorites. Returns 409 if already favorited.
+      operationId: favoriteSubmission
+      responses:
+        "201":
+          description: Favorite created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove a submission from favorites
+      description: Returns 409 if the API key user has not favorited it.
+      operationId: unfavoriteSubmission
+      responses:
+        "204":
+          description: Favorite removed.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+  /comments/{id}/favorite:
+    parameters:
+      - $ref: "#/components/parameters/CommentId"
+    post:
+      tags: [interactions]
+      summary: Favorite a comment
+      description: Adds the comment to the API key user's favorites. Returns 403 for a deleted comment and 409 if already favorited.
+      operationId: favoriteComment
+      responses:
+        "201":
+          description: Favorite created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FavoriteState"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+    delete:
+      tags: [interactions]
+      summary: Remove a comment from favorites
+      description: An existing favorite can be removed after the comment is deleted. Returns 409 if the API key user has not favorited it.
+      operationId: unfavoriteComment
+      responses:
+        "204":
+          description: Favorite removed.
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
 
   # --- Users and their lists (Martina, #69) ----------------------------------
   /users/{id}:
@@ -1258,6 +1331,16 @@ components:
         points:
           type: integer
         hidden:
+          type: boolean
+          enum: [true]
+
+    FavoriteState:
+      type: object
+      required: [id, favorited]
+      properties:
+        id:
+          type: integer
+        favorited:
           type: boolean
           enum: [true]
 
