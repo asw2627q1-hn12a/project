@@ -170,6 +170,7 @@ paths:
     put:
       tags: [submissions]
       summary: Edit your own submission
+      description: Only supplied fields are updated. Set `url` to an empty string to turn a URL submission into an Ask submission.
       operationId: updateSubmission
       requestBody:
         required: true

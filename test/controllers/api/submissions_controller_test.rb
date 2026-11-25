@@ -111,6 +111,12 @@ class Api::SubmissionsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "ask", response.parsed_body["submission_type"]
     assert_equal "My Ask", response.parsed_body["title"]
     assert_equal 1, response.parsed_body["points"]
+
+    put "/api/submissions/#{own.id}", params: { title: "Updated Ask" }.to_json, headers: json_headers
+    assert_response :success
+    assert_equal "Updated Ask", own.reload.title
+    assert_equal "Body", own.text
+    assert_equal "ask", response.parsed_body["submission_type"]
   end
 
   test "update rejects another submission's URL and keeps the original data" do
