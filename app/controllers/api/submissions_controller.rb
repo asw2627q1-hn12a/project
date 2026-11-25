@@ -37,7 +37,7 @@ module Api
     end
 
     def update
-      @submission = Submission.find(params[:id])
+      @submission = Submission.find(params.expect(:id))
       return unless authorize_owner
 
       @submission.assign_attributes(submission_params)
@@ -51,7 +51,7 @@ module Api
     end
 
     def destroy
-      @submission = Submission.find(params[:id])
+      @submission = Submission.find(params.expect(:id))
       return unless authorize_owner
 
       @submission.destroy!
