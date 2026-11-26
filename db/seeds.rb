@@ -151,6 +151,62 @@ submissions_data = [
     points: 260,
     user: users_by_username.fetch("pg"),
     created_at: 16.hours.ago
+  },
+  {
+    title: "PostgreSQL tutorial: transactions and rollback",
+    url: "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+    points: 92,
+    user: users_by_username.fetch("linus"),
+    created_at: 25.minutes.ago
+  },
+  {
+    title: "A practical guide to HTTP response codes",
+    url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status",
+    points: 37,
+    user: users_by_username.fetch("ada_lovelace"),
+    created_at: 40.minutes.ago
+  },
+  {
+    title: "Rails Active Storage: uploading files and choosing a storage service",
+    url: "https://guides.rubyonrails.org/active_storage_overview.html",
+    points: 115,
+    user: users_by_username.fetch("dhh"),
+    created_at: 90.minutes.ago
+  },
+  {
+    title: "OpenAPI: describing an API with paths and schemas",
+    url: "https://spec.openapis.org/oas/v3.0.3.html",
+    points: 63,
+    user: users_by_username.fetch("matz"),
+    created_at: 3.hours.ago
+  },
+  {
+    title: "Git: reviewing changes before merging a branch",
+    url: "https://git-scm.com/docs/git-diff",
+    points: 48,
+    user: users_by_username.fetch("pg"),
+    created_at: 10.hours.ago
+  },
+  {
+    title: "Ruby Enumerable: map, select and reduce with small examples",
+    url: "https://docs.ruby-lang.org/en/master/Enumerable.html",
+    points: 21,
+    user: users_by_username.fetch("matz"),
+    created_at: 1.day.ago
+  },
+  {
+    title: "Cross-origin requests and the browser preflight",
+    url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",
+    points: 74,
+    user: users_by_username.fetch("ada_lovelace"),
+    created_at: 3.days.ago
+  },
+  {
+    title: "Show HN: Reading the source of a small programming language",
+    url: "https://craftinginterpreters.com/",
+    points: 156,
+    user: users_by_username.fetch("pg"),
+    created_at: 5.days.ago
   }
 ]
 
@@ -210,6 +266,62 @@ ask_submissions_data = [
     points: 19,
     user: users_by_username.fetch("matz"),
     created_at: 2.days.ago
+  },
+  {
+    title: "Ask HN: What would you test before your first API demo?",
+    text: "Our team is preparing a Rails API demo using Swagger Editor. Which failure cases would you demonstrate alongside the successful requests?",
+    points: 36,
+    user: users_by_username.fetch("pg"),
+    created_at: 15.minutes.ago
+  },
+  {
+    title: "Ask HN: How do you keep uploads after a cloud redeploy?",
+    text: "We use PostgreSQL for application data and object storage for images. What checks do you run to confirm both survive a deployment?",
+    points: 58,
+    user: users_by_username.fetch("dhh"),
+    created_at: 35.minutes.ago
+  },
+  {
+    title: "Ask HN: Which small Ruby feature made your code easier to read?",
+    text: "I am learning Ruby after Java and C++. I would like examples where a Ruby feature improves readability without hiding the control flow.",
+    points: 24,
+    user: users_by_username.fetch("matz"),
+    created_at: 75.minutes.ago
+  },
+  {
+    title: "Ask HN: How do you review authorization in a REST API?",
+    text: "We already authenticate requests with an API key. How do you check that each action can only modify resources owned by the authenticated user?",
+    points: 81,
+    user: users_by_username.fetch("ada_lovelace"),
+    created_at: 4.hours.ago
+  },
+  {
+    title: "Ask HN: How do you reproduce intermittent browser test failures?",
+    text: "A system test sometimes fails after a redirect. What information helps you distinguish an application bug from a browser or synchronization problem?",
+    points: 43,
+    user: users_by_username.fetch("linus"),
+    created_at: 11.hours.ago
+  },
+  {
+    title: "Ask HN: What makes a useful code review comment?",
+    text: "We are starting to review each other's pull requests. How do you explain a concrete problem and its consequence while keeping the feedback short?",
+    points: 18,
+    user: users_by_username.fetch("pg"),
+    created_at: 1.day.ago
+  },
+  {
+    title: "Ask HN: How would you prevent duplicate votes?",
+    text: "Two requests from the same user can arrive at the same time. How would you combine model validations, database constraints and a consistent score?",
+    points: 96,
+    user: users_by_username.fetch("linus"),
+    created_at: 2.days.ago
+  },
+  {
+    title: "Ask HN: Which database topic helped you most in a web project?",
+    text: "Indexes, transactions and foreign keys all appeared in our Rails project. Which concept became clearer once you used it in an application?",
+    points: 29,
+    user: users_by_username.fetch("ada_lovelace"),
+    created_at: 4.days.ago
   }
 ]
 
@@ -601,6 +713,128 @@ comment_threads.each do |spec|
   end
 
   seed_comment(submission, spec, nil, users_by_username)
+end
+
+# Conversaciones adicionales para recorrer listados, perfiles y respuestas en la demo.
+demo_discussions = [
+  {
+    submission_url: "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+    body: "A vote and its score should be committed together. A failed request must leave both unchanged.",
+    reply: "I would test a duplicate request as well as a rollback after a validation error."
+  },
+  {
+    submission_url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status",
+    body: "The distinction between 401 and 403 is easier to demonstrate using two different users.",
+    reply: "An invalid key gives 401. A valid key trying to edit someone else's resource gives 403."
+  },
+  {
+    submission_url: "https://guides.rubyonrails.org/active_storage_overview.html",
+    body: "I check the profile after reloading and again after a redeploy before considering an upload complete.",
+    reply: "It also helps to test a text file and an oversized image while keeping the previous avatar."
+  },
+  {
+    submission_url: "https://spec.openapis.org/oas/v3.0.3.html",
+    body: "A specification is easier to use when its example bodies match the actual controller parameters.",
+    reply: "We run the examples through Swagger and compare the status code and JSON with the documented response."
+  },
+  {
+    submission_url: "https://git-scm.com/docs/git-diff",
+    body: "I review the staged diff before committing so unrelated local changes stay out of the pull request.",
+    reply: "The dependency lockfile deserves a separate look, especially when two branches changed it."
+  },
+  {
+    submission_url: "https://docs.ruby-lang.org/en/master/Enumerable.html",
+    body: "Small examples helped me understand how map transforms each item and select keeps matching items.",
+    reply: "I would also compare them with Active Record queries, because filtering in Ruby can load unnecessary rows."
+  },
+  {
+    submission_url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS",
+    body: "Seeing OPTIONS separately from the authenticated request made the browser behavior much clearer.",
+    reply: "The preflight allows the header. The API still validates the key on the actual request."
+  },
+  {
+    submission_url: "https://craftinginterpreters.com/",
+    body: "A small interpreter is a manageable project for practicing recursive data structures.",
+    reply: "Comment trees in a web application are another example where recursion becomes concrete."
+  },
+  {
+    submission_title: "Ask HN: What would you test before your first API demo?",
+    body: "Prepare one successful request, one validation failure and one request with insufficient permissions.",
+    reply: "I would add an upload and verify the resulting image in the actual profile page."
+  },
+  {
+    submission_title: "Ask HN: How do you keep uploads after a cloud redeploy?",
+    body: "Keep the file in object storage and the attachment metadata in the persistent database.",
+    reply: "Then repeat the same read after a deployment and confirm the attachment is still associated with the user."
+  },
+  {
+    submission_title: "Ask HN: Which small Ruby feature made your code easier to read?",
+    body: "Guard clauses made controller actions easier for me to follow during code review.",
+    reply: "Named scopes also help when their names describe the query and their order is explicit."
+  },
+  {
+    submission_title: "Ask HN: How do you review authorization in a REST API?",
+    body: "Send the write request with another user's key even when the web interface hides the edit button.",
+    reply: "I also verify that a forged user_id cannot replace the user identified by the header."
+  },
+  {
+    submission_title: "Ask HN: How do you reproduce intermittent browser test failures?",
+    body: "Record the browser version and wait for the expected page state before starting the next action.",
+    reply: "A failure in session cleanup can affect every test, so the stack trace matters as much as the test name."
+  },
+  {
+    submission_title: "Ask HN: What makes a useful code review comment?",
+    body: "Point to a file, describe a failing example and explain the consequence for the user.",
+    reply: "Separating a blocking bug from an optional suggestion helps the author decide what to fix first."
+  },
+  {
+    submission_title: "Ask HN: How would you prevent duplicate votes?",
+    body: "Use a unique database index on the user and submission pair as well as a model validation.",
+    reply: "The score update and vote creation also need to stay consistent when requests run concurrently."
+  },
+  {
+    submission_title: "Ask HN: Which database topic helped you most in a web project?",
+    body: "Foreign keys made the ownership relations explicit and caught mistakes beyond the Rails validations.",
+    reply: "Transactions became much clearer when I had to keep a vote and its points synchronized."
+  }
+]
+
+seed_authors = users_data.map { |attributes| attributes[:username] }
+demo_discussions.each_with_index do |discussion, index|
+  submission = if discussion[:submission_url]
+    Submission.where("LOWER(url) = ?", discussion[:submission_url].downcase).first!
+  else
+    Submission.find_by!(title: discussion[:submission_title], submission_type: "ask")
+  end
+  elapsed = Time.current - submission.created_at
+
+  seed_comment(submission, {
+    user: seed_authors[index % seed_authors.length],
+    body: discussion[:body],
+    points: 3 + index,
+    created_at: submission.created_at + elapsed * 0.2,
+    replies: [
+      {
+        user: seed_authors[(index + 1) % seed_authors.length],
+        body: discussion[:reply],
+        points: 2 + index,
+        created_at: submission.created_at + elapsed * 0.4,
+        replies: [
+          {
+            user: seed_authors[(index + 2) % seed_authors.length],
+            body: "I will try that approach and check both the successful request and the failure case.",
+            created_at: submission.created_at + elapsed * 0.6
+          }
+        ]
+      }
+    ]
+  }, nil, users_by_username)
+
+  seed_comment(submission, {
+    user: seed_authors[(index + 3) % seed_authors.length],
+    body: "Does anyone have a small example of this that could be reproduced in a Rails project?",
+    created_at: submission.created_at + elapsed * 0.8
+  }, nil, users_by_username)
 end
 
 puts "¡Seeds completados! #{User.count} usuarios, #{Submission.count} submissions y #{Comment.count} comentarios en total."

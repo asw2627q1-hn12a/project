@@ -3,8 +3,8 @@ require "test_helper"
 class SeedsTest < ActiveSupport::TestCase
   test "seeds add missing examples and can be repeated without changing existing records" do
     assert_difference "User.count", 5 do
-      assert_difference "Submission.count", 23 do
-        assert_difference "Comment.count", 41 do
+      assert_difference "Submission.count", 39 do
+        assert_difference "Comment.count", 105 do
           run_seeds
         end
       end
@@ -18,7 +18,9 @@ class SeedsTest < ActiveSupport::TestCase
     comments_before = Comment.order(:id).map(&:attributes)
 
     assert_no_difference [ "User.count", "Submission.count", "Comment.count", "SubmissionVote.count" ] do
-      run_seeds
+      travel 1.day do
+        run_seeds
+      end
     end
 
     assert_equal users_before, User.order(:id).map(&:attributes)
@@ -96,6 +98,32 @@ class SeedsTest < ActiveSupport::TestCase
     User.where(username: seed_usernames).find_each do |user|
       assert_predicate user.about, :present?, "L'usuari #{user.username} ha de tenir biografia 'about'"
       assert_operator user.karma, :>, 0, "L'usuari #{user.username} ha de tenir karma positiu"
+    end
+  end
+
+  test "additional demo submissions have text and discussions with multiple authors" do
+    run_seeds
+
+    seed_users = User.where(username: %w[ pg dhh matz linus ada_lovelace ])
+    assert_equal 24, Submission.where(user: seed_users, submission_type: "url").count
+    assert_equal 15, Submission.where(user: seed_users, submission_type: "ask").count
+
+    titles = [
+      "A practical guide to HTTP response codes",
+      "Ask HN: What would you test before your first API demo?"
+    ]
+    titles.each do |title|
+      submission = Submission.find_by!(title: title)
+
+      assert_equal 4, submission.comments.count
+      assert_equal 2, submission.comments.where(parent_id: nil).count
+      assert_equal 4, submission.comments.distinct.count(:user_id)
+      assert submission.comments.where.not(parent_id: nil).any? { |comment| comment.parent.parent_id.present? }
+      submission.comments.each do |comment|
+        assert_operator comment.created_at, :>=, submission.created_at
+        assert_operator comment.created_at, :<=, Time.current
+      end
+      assert_predicate submission.text, :present? if submission.submission_type == "ask"
     end
   end
 
