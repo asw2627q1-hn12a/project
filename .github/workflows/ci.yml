@@ -81,6 +81,7 @@ jobs:
           done
           pkg-config --modversion yaml-0.1
           google-chrome --version
+          test -u /opt/google/chrome/chrome-sandbox
 
       - name: Checkout code
         uses: actions/checkout@v7
@@ -97,6 +98,8 @@ jobs:
           # Capybara 3.40 cannot reset browser storage with Chrome 158.
           SE_BROWSER_VERSION: "157.0.8103.78"
           SE_SKIP_DRIVER_IN_PATH: "true"
+          # Allow Selenium's downloaded Chrome to use Ubuntu's packaged sandbox.
+          CHROME_DEVEL_SANDBOX: /opt/google/chrome/chrome-sandbox
           DATABASE_URL: ${{ matrix.database == 'postgresql' && 'postgresql://postgres:postgres@127.0.0.1:5432/hn12a_test' || 'sqlite3:storage/test.sqlite3' }}
         run: bin/rails db:test:prepare test test:system
 
