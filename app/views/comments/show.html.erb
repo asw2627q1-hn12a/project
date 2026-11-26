@@ -6,6 +6,7 @@
   </p>
 
   <div class="comments-list">
-    <%= render "comments/comment", comment: @comment, submission: @submission, force_visible: true %>
+    <%= render "comments/comment", comment: @thread_root, submission: @submission, force_visible: true,
+                                   thread_path_ids: @thread_path_ids, thread_target_id: @comment.id %>
   </div>
 </section>

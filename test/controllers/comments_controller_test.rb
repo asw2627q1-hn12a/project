@@ -33,10 +33,13 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     assert_operator response.body.index("Comentari recent"), :<, response.body.index("Comentari antic")
   end
 
-  test "shows a comment and its complete descendant subtree" do
+  test "shows the ancestor path to a comment and its complete descendant subtree" do
     root = Comment.create!(submission: @submission, user: users(:one), body: "Arrel del fil")
     selected = Comment.create!(
       submission: @submission, user: users(:two), body: "Comentari seleccionat", parent: root
+    )
+    sibling = Comment.create!(
+      submission: @submission, user: users(:one), body: "Resposta germana", parent: root
     )
     child = Comment.create!(
       submission: @submission, user: users(:one), body: "Resposta filla", parent: selected
@@ -48,10 +51,11 @@ class CommentsControllerTest < ActionDispatch::IntegrationTest
     get submission_comment_url(@submission, selected)
 
     assert_response :success
+    assert_select "#comment_#{root.id}"
     assert_select "#comment_#{selected.id}"
+    assert_select "#comment_#{sibling.id}", 0
     assert_select "#comment_#{child.id}"
     assert_select "#comment_#{grandchild.id}"
-    assert_select "#comment_#{root.id}", 0
   end
 
   test "does not show a comment belonging to another submission" do
