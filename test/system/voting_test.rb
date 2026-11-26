@@ -21,8 +21,8 @@ class VotingTest < ApplicationSystemTestCase
 
   test "anonymous submission triangle opens login without casting a vote" do
     visit root_url
-    within "#submission_#{@submission.id} .hn-vote-login-form" do
-      click_button "▲", exact: true
+    within "#submission_#{@submission.id}" do
+      find("button[aria-label='Log in to vote']").click
     end
 
     assert_button "logout"
@@ -35,8 +35,8 @@ class VotingTest < ApplicationSystemTestCase
 
   test "anonymous comment triangle opens login without casting a vote" do
     visit submission_url(@submission)
-    within "#comment_#{@comment.id} .hn-vote-login-form" do
-      click_button "▲", exact: true
+    within "#comment_#{@comment.id}" do
+      find("button[aria-label='Log in to vote']").click
     end
 
     assert_button "logout"

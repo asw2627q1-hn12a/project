@@ -42,7 +42,7 @@ Rails.application.routes.draw do
     end
   end
 
-  # API REST (api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
+  # API REST (public/api/api.yaml). Autenticació amb la capçalera X-API-Key (Api::BaseController).
   namespace :api, defaults: { format: :json } do
     get "newest", to: "newest#index"
     # Perfils i els seus llistats (Taiga #69): /api/users/:id i /api/users/:id/<llista>

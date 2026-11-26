@@ -1,4 +1,4 @@
-# Esquema User d'api/api.yaml. L'email només surt al perfil propi, com a la web.
+# Esquema User de public/api/api.yaml. L'email només surt al perfil propi, com a la web.
 json.extract! @user, :id, :username, :created_at, :karma, :about
 json.email @user.email if @user == current_user
 # La imatge pujada (Active Storage) o, si no n'hi ha, la per defecte. URL absoluta.
