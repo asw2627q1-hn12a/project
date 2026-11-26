@@ -9,6 +9,13 @@ class CommentsController < ApplicationController
   end
 
   def show
+    @thread_root = @comment
+    @thread_path_ids = [ @comment.id ]
+
+    while @thread_root.parent
+      @thread_root = @thread_root.parent
+      @thread_path_ids << @thread_root.id
+    end
   end
 
   def new
