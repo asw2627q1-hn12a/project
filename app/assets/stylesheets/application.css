@@ -809,6 +809,11 @@ body {
   margin: 10px 0;
 }
 
+.comment-selected > .comment-header,
+.comment-selected > .comment-body {
+  background-color: #fff3e8;
+}
+
 .comment-header {
   display: flex;
   align-items: baseline;

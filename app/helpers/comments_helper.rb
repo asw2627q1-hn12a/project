@@ -25,4 +25,12 @@ module CommentsHelper
 
     current_user.comment_votes.exists?(comment_id: comment.id)
   end
+
+  def visible_replies_for_thread(comment, path_ids:, target_reached:)
+    replies = comment.replies.includes(:user).order(:created_at)
+                   .select { |reply| reply.visible_in_thread? || path_ids.include?(reply.id) }
+    return replies if path_ids.empty? || target_reached
+
+    replies.select { |reply| path_ids.include?(reply.id) }
+  end
 end

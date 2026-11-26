@@ -2,7 +2,7 @@
 <% thread_target_id = local_assigns[:thread_target_id] %>
 <% thread_target_reached = local_assigns[:thread_target_reached] || comment.id == thread_target_id %>
 <% if local_assigns[:force_visible] || thread_path_ids.include?(comment.id) || comment.visible_in_thread? %>
-<article id="<%= dom_id(comment) %>" class="comment">
+<article id="<%= dom_id(comment) %>" class="comment<%= " comment-selected" if comment.id == thread_target_id %>">
   <%= render "comments/preview", comment: comment %>
 
   <div class="comment-actions">
@@ -21,11 +21,9 @@
     <% end %>
   </div>
 
-  <% visible_replies = comment.replies.includes(:user).order(:created_at)
-                              .select { |reply| reply.visible_in_thread? || thread_path_ids.include?(reply.id) } %>
-  <% if thread_path_ids.any? && !thread_target_reached %>
-    <% visible_replies.select! { |reply| thread_path_ids.include?(reply.id) } %>
-  <% end %>
+  <% visible_replies = visible_replies_for_thread(
+       comment, path_ids: thread_path_ids, target_reached: thread_target_reached
+     ) %>
   <% if visible_replies.any? %>
     <div class="comment-replies">
       <%= render partial: "comments/comment", collection: visible_replies,
