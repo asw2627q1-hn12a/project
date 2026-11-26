@@ -163,7 +163,9 @@ La base retorna els errors previsibles amb `{ "error": "codi", "message": "expli
 
 Els endpoints funcionals i CORS s'implementen a les tasques corresponents. Els tests de la base fan servir rutes temporals que no existeixen a l'aplicació desplegada. En integrar un endpoint, hereteu d'`Api::BaseController`, definiu la ruta sota `namespace :api` i proveu l'accés amb una clau vàlida i sense clau.
 
-Per provar l’API des de Swagger Editor, carrega `api/api.yaml`, selecciona `http://localhost:3000/api` i introdueix la clau del teu perfil local a **Authorize**. CORS permet que Swagger Editor enviï la capçalera `X-API-Key` a les rutes `/api/*`.
+El contracte OpenAPI es troba a `public/api/api.yaml` i Rails el serveix a `/api/api.yaml` sense API key. En local es pot consultar a http://localhost:3000/api/api.yaml i a producció a https://asw2627q1-hn12-project.onrender.com/api/api.yaml.
+
+Per provar l’API des de Swagger Editor, importa el contracte des d’una d’aquestes URL, selecciona el servidor corresponent i introdueix la clau del teu perfil a **Authorize** per executar peticions als endpoints. CORS permet que Swagger Editor carregui el contracte i enviï la capçalera `X-API-Key` a les rutes `/api/*`.
 
 ## Flux de treball
 
