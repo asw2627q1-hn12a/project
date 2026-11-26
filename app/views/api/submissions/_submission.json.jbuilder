@@ -1,4 +1,4 @@
-# Esquema Submission d'api/api.yaml. Locals: submission, states (SubmissionUserStates).
+# Esquema Submission de public/api/api.yaml. Locals: submission, states (SubmissionUserStates).
 json.extract! submission, :id, :title, :url, :text, :submission_type, :domain, :points
 json.comments_count submission.comments_total
 json.created_at submission.created_at

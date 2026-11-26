@@ -1,4 +1,4 @@
-# Esquema Comment d'api/api.yaml. Locals: comment, states (CommentUserStates).
+# Esquema Comment de public/api/api.yaml. Locals: comment, states (CommentUserStates).
 json.extract! comment, :id, :submission_id, :parent_id
 json.body comment.deleted? ? nil : comment.body
 json.deleted comment.deleted?
