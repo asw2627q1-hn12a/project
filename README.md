@@ -9,7 +9,7 @@ L'objectiu és construir la nostra pròpia versió de [Hacker News](https://news
 
 🔗 **Repositori:** https://github.com/asw2627q1-hn12a/project
 
-Aquest README descriu les funcionalitats i la configuració del primer lliurament. La interfície està inspirada en Hacker News i les pàgines es generen al servidor amb ERB; el retall d'imatges al navegador és una millora opcional.
+Aquest README descriu les funcionalitats i la configuració del projecte: la interfície web (primer lliurament) i l'API REST (segon lliurament). La interfície està inspirada en Hacker News i les pàgines es generen al servidor amb ERB; el retall d'imatges al navegador és una millora opcional.
 
 ## Equip
 
@@ -23,7 +23,7 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
 
 ## Funcionalitats actuals
 
-- **Menú superior**: `new | threads | comments | ask | submit` (threads només amb sessió) i la pàgina actual es mostra ressaltada. Past, Show i Jobs queden fora de l'abast del primer lliurament.
+- **Menú superior**: `new | threads | comments | ask | submit` (threads només amb sessió) i la pàgina actual es mostra ressaltada. Past, Show i Jobs queden fora de l'abast del projecte.
 - **Login amb GitHub** (OAuth via OmniAuth). L'usuari es crea automàticament el primer cop que inicia sessió.
 - **Vote/unvote de submissions** al detall i als llistats: només amb sessió, sobre submissions alienes i un vot per usuari. Votar suma un punt i retirar el vot propi en resta un. Les submissions noves conserven el punt inicial, sense vot automàtic de l'autor.
   - Presentació inspirada en Hacker News: triangle gris per votar, que desapareix després del vot, i acció `unvote` al costat dels punts, autor i antiguitat del llistat. Són formularis POST/DELETE amb protecció CSRF, encara que visualment semblin enllaços. No cal JavaScript.
@@ -52,6 +52,7 @@ Aquest README descriu les funcionalitats i la configuració del primer lliuramen
   - La llista `hidden` també permet votar i retirar el vot de submissions alienes sense recuperar-les. Amagar o recuperar una submission conserva els vots i els punts, tant de la submission com dels seus comentaris.
   - `hide` envia un POST i `unhide` un DELETE a `/submissions/:submission_id/hide`, amb formularis de Rails i protecció CSRF, sense afegir JavaScript. Es torna a la pàgina d'origen, o a la portada si no hi ha un origen local vàlid.
   - L'usuari s'obté de la sessió. Un índex únic sobre `user_id` i `submission_id` evita duplicats; repetir hide/unhide no canvia el resultat. Només es pot retirar l'ocultació pròpia.
+- **API REST** sota el prefix `/api`, autenticada amb la capçalera `X-API-Key`. El contracte OpenAPI i els grups d'endpoints s'expliquen a la secció d'API, més avall.
 
 ## Stack
 
@@ -157,11 +158,24 @@ Per obtenir-la en local, inicieu sessió amb GitHub i obriu el perfil propi des 
 
 Els controllers d'API han d'heretar d'`Api::BaseController`, que identifica `current_user` només amb la capçalera `X-API-Key`. La clau s'ha d'enviar a cada petició: ni la sessió web ni un paràmetre `api_key` o `user_id` substitueixen la capçalera. Si falta o no és vàlida, retorna HTTP 401 amb `{"error":"unauthorized","message":"Missing or invalid API key"}`, sempre en JSON i sense redirigir al login.
 
-La base hereta d'`ActionController::API`: les operacions d'API utilitzaran la clau explícita, mentre que la web conserva la seva autenticació per sessió i la protecció CSRF. L'autenticació no substitueix l'autorització: cada endpoint haurà de comprovar la propietat i la resta de regles de negoci. El contracte acordat utilitza el prefix `/api`.
+La base hereta d'`ActionController::API`: les operacions d'API utilitzen la clau explícita, mentre que la web conserva la seva autenticació per sessió i la protecció CSRF. L'autenticació no substitueix l'autorització: cada endpoint ha de comprovar la propietat i la resta de regles de negoci. El contracte acordat utilitza el prefix `/api`.
 
 La base retorna els errors previsibles amb `{ "error": "codi", "message": "explicació" }`: paràmetres absents o JSON malformat (400), recursos no trobats (404), conflictes d'unicitat de BD (409) i validacions de `save!`/`create!` (422, amb `details` per camp). Els endpoints poden cridar `render_api_error(code, message, status:, details: nil)` per a altres errors de negoci, com el 403. Si s'utilitza `save` sense excepció, l'endpoint ha de gestionar el retorn `false`. No es retornen missatges interns de SQL ni es capturen indiscriminadament tots els errors.
 
-Els endpoints funcionals i CORS s'implementen a les tasques corresponents. Els tests de la base fan servir rutes temporals que no existeixen a l'aplicació desplegada. En integrar un endpoint, hereteu d'`Api::BaseController`, definiu la ruta sota `namespace :api` i proveu l'accés amb una clau vàlida i sense clau.
+L'API REST està implementada amb el prefix `/api`. Totes les peticions, excepte la del contracte, s'autentiquen amb la capçalera `X-API-Key`; cada usuari pot copiar la clau des del seu perfil. El contracte OpenAPI és a `public/api/api.yaml` i Rails el serveix a `/api/api.yaml` sense clau.
+
+Endpoints implementats (rutes relatives al prefix `/api`):
+
+- **Submissions i cerca:** `GET/POST /submissions` i `GET/PUT/DELETE /submissions/{id}`. `GET /submissions` és la portada (URL i Ask, ordenades per rellevància). El paràmetre `q` filtra pel títol; un valor en blanc retorna 400.
+- **Llistats:** `GET /newest`, `GET /ask`, `GET /comments` i `GET /threads` (fils de l'usuari de la clau).
+- **Comentaris i respostes:** `POST /submissions/{id}/comments` (comentari arrel o resposta si s'indica `parent_id`), `GET/PUT /comments/{id}` i `DELETE /comments/{id}` (esborrat lògic; es conserven les respostes).
+- **Vots:** `POST/DELETE /submissions/{id}/vote` i `POST/DELETE /comments/{id}/vote`.
+- **Ocultació:** `POST/DELETE /submissions/{id}/hide`.
+- **Favorits:** `POST/DELETE /submissions/{id}/favorite` i `POST/DELETE /comments/{id}/favorite`.
+- **Usuaris i llistats:** `GET/PATCH /users/{id}` i els llistats `submissions`, `comments`, `favorites`, `favorite_comments`, `upvoted`, `upvoted_comments` i `hidden`. Les llistes `upvoted`, `upvoted_comments` i `hidden` només són accessibles per a l'usuari de la clau (la resta reben 403).
+- **Avatar i banner:** `PUT/DELETE /users/{id}/avatar` i `PUT/DELETE /users/{id}/banner`. La pujada utilitza `multipart/form-data`.
+
+Els tests de `Api::BaseController` fan servir rutes temporals que no existeixen a l'aplicació desplegada. En integrar un endpoint nou, hereteu d'`Api::BaseController`, definiu la ruta sota `namespace :api` i proveu l'accés amb una clau vàlida i sense clau.
 
 El contracte OpenAPI es troba a `public/api/api.yaml` i Rails el serveix a `/api/api.yaml` sense API key. En local es pot consultar a http://localhost:3000/api/api.yaml i a producció a https://asw2627q1-hn12-project.onrender.com/api/api.yaml.
 
@@ -169,11 +183,12 @@ Per provar l’API des de Swagger Editor, importa el contracte des d’una d’a
 
 ## Flux de treball
 
-1. Cada tasca de **Taiga** té la seva pròpia branca a GitHub.
-2. Quan la tasca està feta, s'obre una **pull request** cap a `main` i es mou a _Ready for test_ a Taiga.
+1. Cada tasca de **Taiga** té la seva pròpia branca a GitHub, creada des de `dev`.
+2. Quan la tasca està feta, s'obre una **pull request** cap a `dev` i es mou a _Ready for test_ a Taiga.
 3. Per fer el merge i passar la tasca a _Closed_ cal que:
    - **tots els jobs de la CI** passin (tests, RuboCop, Brakeman i importmap audit), i
    - **un altre membre de l'equip aprovi** la pull request.
+4. Els canvis s'integren a producció amb una pull request de `dev` cap a `main`. Si `main` ha avançat pel seu compte, o després d'integrar-hi canvis, es sincronitza `main` cap a `dev`.
 
 ## Desplegament
 
@@ -195,7 +210,9 @@ Els seeds **no es carreguen automàticament a producció**. Si es volen les dade
 
 Health check: `GET /up`. Una resposta correcta indica que Rails arrenca, però no acredita totes les operacions de BD ni la pujada a R2.
 
-## Verificació del primer lliurament
+## Verificació
+
+### Interfície web
 
 Abans de donar el desplegament per verificat:
 
@@ -208,20 +225,32 @@ Abans de donar el desplegament per verificat:
 7. Tornar a desplegar el mateix commit i comprovar que les dades de PostgreSQL i les imatges continuen disponibles. Comprovar també la represa després d'inactivitat.
 8. Registrar els resultats i les incidències a Taiga #33. Les proves locals i la CI no impliquen, per si soles, que aquesta verificació de producció estigui completada.
 
+### API REST
+
+1. Sense API key, una petició a un endpoint (per exemple `GET /api/submissions`) ha de retornar HTTP 401 amb `{"error":"unauthorized","message":"Missing or invalid API key"}`.
+2. Importar el contracte a Swagger Editor des de https://asw2627q1-hn12-project.onrender.com/api/api.yaml o, en local, des de http://localhost:3000/api/api.yaml. Si el servei de Render estava inactiu, cridar abans `GET /up` i esperar que arrenci.
+3. Seleccionar el servidor corresponent i fer **Authorize** amb la clau del perfil.
+4. Provar el CRUD de submissions i comentaris, i les accions de vot, ocultació i favorits; també la pujada d'avatar o banner amb `multipart/form-data`.
+5. Comprovar els casos 403 (operació sobre un recurs aliè) i 404 (recurs inexistent).
+
 Per a la tramesa de l'assignatura cal mantenir a `main` els noms de l'equip, el projecte Taiga i l'URL de producció indicats al principi del README, i completar la tramesa de l'URL del repositori a Atenea. La demo i la code review requereixen la presència de tot l'equip. Segons l'enunciat, no es poden fer commits, merges ni PR durant l'hora anterior a l'inici de la classe de la demo ni un cop començada.
 
 ## Estructura del projecte
 
 ```
 app/
-  controllers/   # contingut, OAuth, perfils, vots, ocultacions i favorits
+  controllers/      # contingut web: OAuth, perfils, vots, ocultacions i favorits
+  controllers/api/  # API REST (autenticació amb X-API-Key)
   models/        # User, Submission, Comment i les relacions per usuari
   views/         # pàgines i formularis ERB
 config/
   database.yml   # SQLite local/test i PostgreSQL extern a producció
   storage.yml    # disc local/test i object storage
   initializers/omniauth.rb   # configuració del login amb GitHub
+  initializers/cors.rb       # CORS de /api/* per a editor.swagger.io
   routes.rb
+public/
+  api/api.yaml      # contracte OpenAPI, servit a /api/api.yaml
 db/
   migrate/       # migracions de l'esquema
   schema.rb
